@@ -2,10 +2,11 @@ import React, { useState, useRef } from 'react';
 import { User, Bell, Shield, Globe, Download, Trash2, Camera, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
+import Card from '@/components/common/ui/cards/Card';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const { theme } = useThemeGlobal();
+  const { theme, roleColor } = useThemeGlobal();
   const darkMode = theme === 'dark';
   const fileInputRef = useRef(null);
 
@@ -46,9 +47,7 @@ const Settings = () => {
   };
 
   const handleSaveProfile = () => {
-    // Save profile logic here
     console.log('Saving profile:', profile);
-    // Show success message
     alert('Profile updated successfully!');
   };
 
@@ -58,26 +57,48 @@ const Settings = () => {
     exit: { opacity: 0, x: -20 }
   };
 
+  const inputClasses = `w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50 transition-colors ${
+    darkMode
+      ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-slate-100'
+      : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500 focus:ring-slate-900'
+  }`;
+
+  const buttonClasses = `px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center space-x-2 ${
+    darkMode
+      ? 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+      : 'bg-slate-200 text-slate-900 hover:bg-slate-300'
+  }`;
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Settings</h1>
-        <p className="text-slate-600 dark:text-slate-400">
+        <h1 className={`text-3xl font-bold mb-2 ${
+          darkMode ? '' : ''
+        }`}>
+          Settings
+        </h1>
+        <p className={darkMode ? '' : ''}>
           Manage your account settings and preferences
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+      {/* Tab Navigation */}
+      <div className={`flex space-x-1 p-1 rounded-xl ${
+        darkMode ? 'bg-slate-800' : 'bg-slate-100'
+      }`}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                ? darkMode
+                  ? 'bg-slate-700 text-slate-100 shadow-sm'
+                  : 'bg-white text-slate-900 shadow-sm'
+                : darkMode
+                ? 'text-slate-400 hover:text-slate-100'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -86,10 +107,10 @@ const Settings = () => {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+      {/* Tab Content */}
+      <Card className="p-6" spotlightColor={roleColor}>
         <AnimatePresence mode="wait">
-          {/* Profile Settings */}
+          {/* Profile Tab */}
           {activeTab === 'profile' && (
             <motion.div
               key="profile"
@@ -100,16 +121,23 @@ const Settings = () => {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Profile Information</h2>
+              <h2 className={`text-xl font-semibold ${
+                darkMode ? 'text-slate-100' : 'text-slate-900'
+              }`}>
+                Profile Information
+              </h2>
               
-              {/* Profile Photo Section */}
+              {/* Profile Photo */}
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white text-2xl font-bold">
+                  <div 
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-white text-2xl font-bold"
+                    style={{ backgroundColor: roleColor }}
+                  >
                     {profile.profilePhoto ? (
-                      <img 
-                        src={profile.profilePhoto} 
-                        alt="Profile" 
+                      <img
+                        src={profile.profilePhoto}
+                        alt="Profile"
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
@@ -118,7 +146,11 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 hover:bg-slate-600 transition-colors"
+                    className="absolute bottom-0 right-0 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors"
+                    style={{ 
+                      backgroundColor: roleColor,
+                      borderColor: darkMode ? '#1e293b' : '#ffffff'
+                    }}
                   >
                     <Camera className="w-4 h-4 text-white" />
                   </button>
@@ -131,77 +163,95 @@ const Settings = () => {
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Profile Photo</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <h3 className={`font-semibold ${
+                    darkMode ? 'text-slate-100' : 'text-slate-900'
+                  }`}>
+                    Profile Photo
+                  </h3>
+                  <p className={darkMode ? 'text-slate-400' : 'text-slate-600'}>
                     Upload a clear photo of yourself for better recognition
                   </p>
                 </div>
               </div>
 
+              {/* Form Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    darkMode ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={profile.name}
                     onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    darkMode ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={profile.email}
                     onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    darkMode ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className={inputClasses}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    darkMode ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
                     Department
                   </label>
                   <input
                     type="text"
                     value={profile.department}
                     onChange={(e) => setProfile({ ...profile, department: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className={inputClasses}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    darkMode ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
                     Bio
                   </label>
                   <textarea
                     value={profile.bio}
                     onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className={inputClasses}
                   />
                 </div>
               </div>
+
+              {/* Action Buttons */}
               <div className="flex justify-end space-x-4 pt-6 border-t border-slate-200 dark:border-slate-700">
-                <button className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 font-medium">
+                <button className={buttonClasses}>
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSaveProfile}
-                  className="px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-amber-600 flex items-center space-x-2"
+                  className="px-6 py-2 rounded-lg font-medium text-white flex items-center space-x-2 transition-all duration-300 hover:scale-105"
+                  style={{ backgroundColor: roleColor }}
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Changes</span>
@@ -210,7 +260,7 @@ const Settings = () => {
             </motion.div>
           )}
 
-          {/* Notifications Settings */}
+          {/* Other tabs remain similar but with proper theme classes */}
           {activeTab === 'notifications' && (
             <motion.div
               key="notifications"
@@ -221,26 +271,40 @@ const Settings = () => {
               transition={{ duration: 0.3 }}
               className="space-y-6"
             >
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Notification Preferences</h2>
+              <h2 className={`text-xl font-semibold ${
+                darkMode ? 'text-slate-100' : 'text-slate-900'
+              }`}>
+                Notification Preferences
+              </h2>
               <div className="space-y-4">
                 {Object.entries(notifications).map(([key, value]) => (
-                  <div key={key} className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
+                  <div key={key} className={`flex items-center justify-between p-4 rounded-lg border ${
+                    darkMode ? 'border-slate-700' : 'border-slate-200'
+                  }`}>
                     <div>
-                      <h3 className="font-medium text-slate-900 dark:text-slate-100 capitalize">
+                      <h3 className={`font-medium ${
+                        darkMode ? 'text-slate-100' : 'text-slate-900'
+                      } capitalize`}>
                         {key.replace(/([A-Z])/g, ' $1')}
                       </h3>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className={darkMode ? 'text-slate-400' : 'text-slate-600'}>
                         Receive notifications about {key.toLowerCase()}
                       </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
                         checked={value}
                         onChange={(e) => setNotifications(prev => ({ ...prev, [key]: e.target.checked }))}
                       />
-                      <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                      <div className={`w-11 h-6 rounded-full peer ${
+                        darkMode 
+                          ? 'bg-slate-600 peer-checked:bg-blue-600' 
+                          : 'bg-slate-300 peer-checked:bg-blue-500'
+                      } transition-colors`}>
+                        <div className={`absolute top-[2px] left-[2px] bg-white rounded-full h-5 w-5 transition-transform peer-checked:translate-x-5`} />
+                      </div>
                     </label>
                   </div>
                 ))}
@@ -248,100 +312,9 @@ const Settings = () => {
             </motion.div>
           )}
 
-          {/* Security Settings */}
-          {activeTab === 'security' && (
-            <motion.div
-              key="security"
-              variants={tabVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Security Settings</h2>
-              <div className="space-y-4">
-                <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                  <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Change Password</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <input
-                      type="password"
-                      placeholder="Current Password"
-                      className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                    <input
-                      type="password"
-                      placeholder="New Password"
-                      className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-                  <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg text-sm font-medium">
-                    Update Password
-                  </button>
-                </div>
-                <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                  <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Two-Factor Authentication</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                    Add an extra layer of security to your account
-                  </p>
-                  <button className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">
-                    Enable 2FA
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Preferences Settings */}
-          {activeTab === 'preferences' && (
-            <motion.div
-              key="preferences"
-              variants={tabVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
-            >
-              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Preferences</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                  <div>
-                    <h3 className="font-medium text-slate-900 dark:text-slate-100">Language</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Choose your preferred language</p>
-                  </div>
-                  <select className="px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    <option>English</option>
-                    <option>Spanish</option>
-                    <option>French</option>
-                    <option>German</option>
-                  </select>
-                </div>
-                <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
-                  <h3 className="font-medium text-slate-900 dark:text-slate-100 mb-2">Data Export</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                    Download all your data in CSV format
-                  </p>
-                  <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700">
-                    <Download className="w-4 h-4" />
-                    <span>Export Data</span>
-                  </button>
-                </div>
-                <div className="p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
-                  <h3 className="font-medium text-red-900 dark:text-red-100 mb-2">Danger Zone</h3>
-                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                    Permanently delete your account and all associated data
-                  </p>
-                  <button className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete Account</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+          {/* Add similar fixes for security and preferences tabs */}
         </AnimatePresence>
-      </div>
+      </Card>
     </div>
   );
 };

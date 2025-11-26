@@ -125,138 +125,130 @@ const TaskBoard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className={`text-3xl font-bold mb-2 ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            Task Board
-          </h1>
-          <p className={`${
-            darkMode ? 'text-slate-400' : 'text-slate-600'
-          }`}>
-            Organize and track your academic tasks
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            placeholder="Add a new task..."
-            className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-300"
-            onKeyPress={(e) => e.key === 'Enter' && addTask()}
-          />
-          <button 
-            onClick={addTask}
-            className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Task</span>
-          </button>
-        </div>
+  <div className={`min-h-screen space-y-6 p-6 ${darkMode ? '' : ''}`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className={`text-3xl font-bold mb-2 ${darkMode ? '' : ''}`}>
+          Task Board
+        </h1>
+        <p className={darkMode ? '' : ''}>
+          Organize and track your academic tasks
+        </p>
       </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <StatsCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            subtitle={stat.subtitle}
-            icon={stat.icon}
-            color={stat.color}
-          />
-        ))}
-      </div>
-
-      {/* Task Board */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {columns.map((column) => (
-          <Card
-            key={column.id}
-            className="p-4 min-h-96"
-            spotlightColor="#f39c12"
-          >
-            <div className={`flex items-center space-x-2 mb-4 p-2 rounded-lg ${
-              darkMode 
-                ? `bg-${column.color}-900/20` 
-                : `bg-${column.color}-50`
-            }`}>
-              <column.icon className={`w-5 h-5 ${
-                darkMode 
-                  ? `text-${column.color}-400` 
-                  : `text-${column.color}-600`
-              }`} />
-              <h3 className={`font-semibold ${
-                darkMode 
-                  ? `text-${column.color}-400` 
-                  : `text-${column.color}-600`
-              }`}>
-                {column.title}
-              </h3>
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                darkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'
-              }`}>
-                {tasks[column.id].length}
-              </span>
-            </div>
-
-               {/* Task Cards - FIXED */}
-            <div className="space-y-3">
-              {tasks[column.id].map((task) => (
-                <div
-                  key={task.id}
-                  className={`rounded-xl p-4 border cursor-pointer transition-all duration-200 group ${
-                    darkMode 
-                      ? 'bg-slate-700 border-slate-600 hover:border-orange-500' 
-                      : 'bg-white border-slate-200 hover:border-orange-400'
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className={`font-medium group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors ${
-                      darkMode ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      {task.title}
-                    </h4>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreVertical className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </div>
-                  <p className={`text-sm mb-3 ${
-                    darkMode ? 'text-slate-400' : 'text-slate-600'
-                  }`}>
-                    {task.description}
-                  </p>
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full ${getTypeColor(task.type)}`}>
-                        {task.type}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full border ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </span>
-                    </div>
-                    <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
-                      {task.dueDate}
-                    </span>
-                  </div>
-                  <div className={`mt-2 text-xs ${
-                    darkMode ? 'text-slate-500' : 'text-slate-500'
-                  }`}>
-                    {task.course}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
+      <div className="flex space-x-2">
+        <input
+          type="text"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Add a new task..."
+          className={`px-4 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-300 ${
+            darkMode 
+              ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' 
+              : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500'
+          }`}
+          onKeyPress={(e) => e.key === 'Enter' && addTask()}
+        />
+        <button
+          onClick={addTask}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add Task</span>
+        </button>
       </div>
     </div>
-  );
+
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {stats.map((stat, index) => (
+        <div key={stat.title} className={`rounded-xl p-6 ${darkMode ? 'bg-slate-800' : 'bg-white'} border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-lg ${darkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <stat.icon className={`w-6 h-6 ${darkMode ? 'text-white' : 'text-slate-900'}`} />
+            </div>
+            <div>
+              <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{stat.title}</p>
+              <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{stat.value}</p>
+              <p className={`text-xs ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>{stat.subtitle}</p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {columns.map((column) => (
+        <div key={column.id} className={`rounded-xl p-4 min-h-96 ${darkMode ? 'bg-slate-800' : 'bg-white'} border ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+          <div className={`flex items-center space-x-2 mb-4 p-2 rounded-lg ${
+            darkMode
+              ? `bg-${column.color}-900/20`
+              : `bg-${column.color}-50`
+          }`}>
+            <column.icon className={`w-5 h-5 ${
+              darkMode
+                ? `text-${column.color}-400`
+                : `text-${column.color}-600`
+            }`} />
+            <h3 className={`font-semibold ${
+              darkMode
+                ? `text-${column.color}-400`
+                : `text-${column.color}-600`
+            }`}>
+              {column.title}
+            </h3>
+            <span className={`px-2 py-1 rounded-full text-xs ${
+              darkMode ? 'bg-slate-700 text-white' : 'bg-white text-slate-900'
+            }`}>
+              {tasks[column.id].length}
+            </span>
+          </div>
+          
+          <div className="space-y-3">
+            {tasks[column.id].map((task) => (
+              <div
+                key={task.id}
+                className={`rounded-xl p-4 border cursor-pointer transition-all duration-200 group ${
+                  darkMode
+                    ? 'bg-slate-700 border-slate-600 hover:border-orange-500'
+                    : 'bg-white border-slate-200 hover:border-orange-400'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className={`font-medium group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors ${
+                    darkMode ? 'text-white' : 'text-slate-900'
+                  }`}>
+                    {task.title}
+                  </h4>
+                  <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <MoreVertical className="w-4 h-4 text-slate-400" />
+                  </button>
+                </div>
+                <p className={`text-sm mb-3 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {task.description}
+                </p>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 rounded-full ${getTypeColor(task.type)}`}>
+                      {task.type}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full border ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+                  <span className={darkMode ? 'text-slate-500' : 'text-slate-500'}>
+                    {task.dueDate}
+                  </span>
+                </div>
+                <div className={`mt-2 text-xs ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
+                  {task.course}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 };
 
 export default TaskBoard;

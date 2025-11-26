@@ -1,67 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { User, Users, Shield, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
 import Aurora from "@/components/visual/Aurora";
 import ThemeToggle from "@/components/common/theme/ThemeToggle";
 import { useThemeGlobal } from "@/components/common/theme/ThemeProvider";
 import MagicCard from "@/components/visual/MagicCard";
 import Skeleton from "@/components/common/ui/utils/Skeleton";
-import { toast } from "react-toastify"; // Add this import
-
+import { toast } from "react-toastify";
 import { useApi } from "@/contexts/ApiContext";
-
-
-
-
-export default function EnhancedLogin({ onLoginSuccess }) {
-    const { login, signUp } = useApi(); // Use the context hook
-
-  const [showBG, setShowBG] = useState(false);
-  const { theme } = useThemeGlobal();
-  const darkMode = theme === 'dark';
-  const [loading, setLoading] = useState(true);
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [showSignUp, setShowSignUp] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [formValues, setFormValues] = useState({});
-  const [formErrors, setFormErrors] = useState({});
-
-  useEffect(() => { 
-    const t = setTimeout(() => setShowBG(true), 300); 
-    return () => clearTimeout(t); 
-  }, []);
-
-  useEffect(() => { 
-    const t = setTimeout(() => setLoading(false), 2000); 
-    return () => clearTimeout(t); 
-  }, []);
-
-  
-
-  const cardData = [
-    { 
-      title: "Student", 
-      color: "#f39c12", 
-      icon: <User size={40} />, 
-      description: "Access your courses, assignments, and grades." 
-    },
-    { 
-      title: "Faculty", 
-      color: "#8311f2", 
-      icon: <Users size={40} />, 
-      description: "Manage your classes, students, and schedules." 
-    },
-    { 
-      title: "Admin", 
-      color: "#f21311", 
-      icon: <Shield size={40} />, 
-      description: "Full control of users, permissions, and settings." 
-    },
-  ];
-
-
-const CustomInput = ({
+import React from "react";
+// Move CustomInput and CustomSelect outside the main component to prevent recreation
+const CustomInput = React.memo(({
   id,
   type = "text",
   placeholder,
@@ -75,6 +24,10 @@ const CustomInput = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const inputType = type === "password" && showPassword ? "text" : type;
+  
+  const handlePasswordToggle = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
   return (
     <div className="relative">
@@ -92,37 +45,34 @@ const CustomInput = ({
         className={`
           w-full px-4 py-3 rounded-xl border-2 transition-all duration-300
           bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm
-          text-black dark:text-white 
+          text-black dark:text-white
           border-gray-200 dark:border-slate-600
           focus:outline-none focus:border-[var(--ring)]
           focus:ring-2 focus:ring-[var(--ring-light)]
-         
           ${error ? "border-red-500 dark:border-red-400" : ""}
           ${className}
         `}
         {...props}
       />
-
-      
       {type === 'password' && (
         <button
           type="button"
-          onClick={() => setShowPassword(!showPassword)}
+          onClick={handlePasswordToggle}
           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
       )}
-      
       {error && (
         <p className="text-red-500 dark:text-red-400 text-sm mt-1">{error}</p>
       )}
     </div>
   );
-};
+});
 
-// Custom Select Component
-const CustomSelect = ({
+CustomInput.displayName = 'CustomInput';
+
+const CustomSelect = React.memo(({
   id,
   value,
   onChange,
@@ -145,7 +95,7 @@ const CustomSelect = ({
           "--ring-light": `${roleColor}30`,
         }}
         className={`
-          w-full  px-4 py-3 rounded-xl border-2 transition-all duration-300
+          w-full px-4 py-3 rounded-xl border-2 transition-all duration-300
           bg-white/80 dark:bg-slate-800/80
           text-black dark:text-white
           border-gray-200 dark:border-slate-600
@@ -158,62 +108,108 @@ const CustomSelect = ({
       >
         {children}
       </select>
-
-      
-      {/* Custom dropdown arrow */}
-      
-      
       {error && (
         <p className="text-red-500 dark:text-red-400 text-sm mt-1">{error}</p>
       )}
     </div>
   );
-};
+});
 
-const getRoleColor = (role = selectedCard) => {
-  const card = cardData.find(c => c.title === role);
-  return card?.color || "limegreen";
-};
+CustomSelect.displayName = 'CustomSelect';
 
+export default function EnhancedLogin({ onLoginSuccess }) {
+  const { login, signUp } = useApi();
+  const [showBG, setShowBG] = useState(false);
+  const { theme } = useThemeGlobal();
+  const darkMode = theme === 'dark';
+  const [loading, setLoading] = useState(true);
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [formValues, setFormValues] = useState({});
+  const [formErrors, setFormErrors] = useState({});
 
-  const handleCardClick = (cardTitle) => {
+  // Use useRef to maintain stable references
+  const formValuesRef = useRef(formValues);
+  formValuesRef.current = formValues;
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowBG(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const cardData = [
+    {
+      title: "Student",
+      color: "#f39c12",
+      icon: <User size={40} />,
+      description: "Access your courses, assignments, and grades."
+    },
+    {
+      title: "Faculty",
+      color: "#8311f2",
+      icon: <Users size={40} />,
+      description: "Manage your classes, students, and schedules."
+    },
+    {
+      title: "Admin",
+      color: "#f21311",
+      icon: <Shield size={40} />,
+      description: "Full control of users, permissions, and settings."
+    },
+  ];
+
+  // Use useCallback for stable function references
+  const getRoleColor = useCallback((role = selectedCard) => {
+    const card = cardData.find(c => c.title === role);
+    return card?.color || "limegreen";
+  }, [selectedCard, cardData]);
+
+  const handleCardClick = useCallback((cardTitle) => {
     if (selectedCard || isAnimating) return;
     setIsAnimating(true);
     setSelectedCard(cardTitle);
     setFormValues({});
     setFormErrors({});
     setTimeout(() => setIsAnimating(false), 500);
-  };
+  }, [selectedCard, isAnimating]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (isAnimating) return;
     setIsAnimating(true);
     setSelectedCard(null);
     setFormErrors({});
     setTimeout(() => setIsAnimating(false), 500);
-  };
+  }, [isAnimating]);
 
-  const handleInputChange = (e) => {
+  // Stable input change handler
+  const handleInputChange = useCallback((e) => {
     const { id, value } = e.target;
     setFormValues(prev => ({ ...prev, [id]: value }));
     if (formErrors[id]) {
       setFormErrors(prev => ({ ...prev, [id]: '' }));
     }
-  };
+  }, [formErrors]);
 
-  const validateForm = (fields) => {
+  const validateForm = useCallback((fields) => {
     const errors = {};
+    const currentValues = formValuesRef.current;
+    
     fields.forEach(field => {
-      if (!formValues[field]) {
+      if (!currentValues[field]) {
         errors[field] = "This field is required";
       }
     });
     return errors;
-  };
+  }, []);
 
-  const handleSubmit = async (e, card) => {
+  const handleSubmit = useCallback(async (e, card) => {
     e.preventDefault();
-    
     let requiredFields = [];
     if (card.title === "Student") {
       requiredFields = ['enroll', 'pass', 'institute', 'relation'];
@@ -223,11 +219,11 @@ const getRoleColor = (role = selectedCard) => {
       requiredFields = ['email', 'pass'];
     } else if (card.title === "SignUp") {
       requiredFields = ['name', 'email', 'pass', 'role'];
-      if (formValues.role === 'student') {
+      if (formValuesRef.current.role === 'student') {
         requiredFields.push('institute', 'relation');
-      } else if (formValues.role === 'faculty') {
+      } else if (formValuesRef.current.role === 'faculty') {
         requiredFields.push('department');
-      } else if (formValues.role === 'admin') {
+      } else if (formValuesRef.current.role === 'admin') {
         requiredFields.push('accessCode');
       }
     }
@@ -241,52 +237,44 @@ const getRoleColor = (role = selectedCard) => {
     try {
       if (card.title === "SignUp") {
         const signUpData = {
-          role: formValues.role,
-          name: formValues.name,
-          email: formValues.email,
-          password: formValues.pass,
-          ...(formValues.role === 'student' && {
-            institute: formValues.institute,
-            relation: formValues.relation,
-            enrollment_number: formValues.enroll,
+          role: formValuesRef.current.role,
+          name: formValuesRef.current.name,
+          email: formValuesRef.current.email,
+          password: formValuesRef.current.pass,
+          ...(formValuesRef.current.role === 'student' && {
+            institute: formValuesRef.current.institute,
+            relation: formValuesRef.current.relation,
+            enrollment_number: formValuesRef.current.enroll,
           }),
-          ...(formValues.role === 'faculty' && {
-            department: formValues.department,
-            username: formValues.username,
+          ...(formValuesRef.current.role === 'faculty' && {
+            department: formValuesRef.current.department,
+            username: formValuesRef.current.username,
           }),
-          ...(formValues.role === 'admin' && {
-            access_code: formValues.accessCode,
+          ...(formValuesRef.current.role === 'admin' && {
+            access_code: formValuesRef.current.accessCode,
           }),
         };
-
         const res = await signUp(signUpData);
-        
-        toast.success(`Sign Up Successful! You can now login as ${formValues.role}`);
+        toast.success(`Sign Up Successful! You can now login as ${formValuesRef.current.role}`);
         setFormValues({});
         setShowSignUp(false);
         setFormErrors({});
-        
       } else {
         const role = card.title.toLowerCase();
-        const identifier = 
-          role === 'student' ? formValues.enroll :
-          role === 'faculty' ? formValues.username :
-          formValues.email;
-
+        const identifier =
+          role === 'student' ? formValuesRef.current.enroll :
+          role === 'faculty' ? formValuesRef.current.username :
+          formValuesRef.current.email;
         const loginData = {
           role,
           identifier,
-          password: formValues.pass,
+          password: formValuesRef.current.pass,
         };
-
         const res = await login(loginData);
-        
         if (res.success) {
-          // Store auth data
           localStorage.setItem('authToken', res.token);
           localStorage.setItem('userRole', res.user.role);
           localStorage.setItem('userData', JSON.stringify(res.user));
-          
           toast.success(`Welcome back, ${res.user.name || res.user.role}!`);
           onLoginSuccess?.(res.user);
         }
@@ -295,9 +283,21 @@ const getRoleColor = (role = selectedCard) => {
       console.error('Submission error:', error);
       toast.error(error.message || 'An error occurred. Please try again.');
     }
-  };
+  }, [login, signUp, onLoginSuccess, validateForm]);
 
-  const renderFormFields = (card) => {
+  // Stable handlers for UI interactions
+  const handleShowSignUp = useCallback(() => {
+    setShowSignUp(true);
+  }, []);
+
+  const handleHideSignUp = useCallback(() => {
+    setShowSignUp(false);
+  }, []);
+
+  // Memoized form field renderers
+  const renderFormFields = useCallback((card) => {
+    const currentColor = getRoleColor();
+    
     switch(card.title) {
       case "Student":
         return (
@@ -309,7 +309,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.enroll}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
             <CustomInput
               id="pass"
@@ -319,7 +319,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.pass}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
             <CustomSelect
               id="institute"
@@ -327,7 +327,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.institute}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             >
               <option value="">Select Institute</option>
               <option value="bahria-karachi">Bahria Karachi</option>
@@ -340,7 +340,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.relation}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             >
               <option value="">Parent/Child?</option>
               <option value="parent">Parent</option>
@@ -358,7 +358,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.username}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
             <CustomInput
               id="pass"
@@ -368,7 +368,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.pass}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
           </>
         );
@@ -383,7 +383,7 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.email}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
             <CustomInput
               id="pass"
@@ -393,126 +393,125 @@ const getRoleColor = (role = selectedCard) => {
               onChange={handleInputChange}
               required
               error={formErrors.pass}
-              roleColor={getRoleColor()}
+              roleColor={currentColor}
             />
           </>
         );
       default:
         return null;
     }
-  };
+  }, [formValues, formErrors, handleInputChange, getRoleColor]);
 
-  const renderSignUpFields = () => (
-    <>
-      <CustomInput
-        id="name"
-        placeholder="Enter your full name"
-        value={formValues.name}
-        onChange={handleInputChange}
-        required
-        error={formErrors.name}
-        roleColor={getRoleColor()}
-      />
-      <CustomInput
-        id="email"
-        type="email"
-        placeholder="Enter your email"
-        value={formValues.email}
-        onChange={handleInputChange}
-        required
-        error={formErrors.email}
-        roleColor={getRoleColor()}
-      />
-      <CustomInput
-        id="pass"
-        type="password"
-        placeholder="Create a password"
-        value={formValues.pass}
-        onChange={handleInputChange}
-        required
-        error={formErrors.pass}
-        roleColor={getRoleColor()}
-      />
-      <CustomSelect
-        id="role"
-        value={formValues.role}
-        onChange={handleInputChange}
-        required
-        error={formErrors.role}
-        roleColor={getRoleColor()}
-      >
-        <option value="">Select Role</option>
-        <option value="student">Student</option>
-        <option value="faculty">Faculty</option>
-        <option value="admin">Admin</option>
-      </CustomSelect>
-
-      {formValues.role === 'student' && (
-        <>
-          <CustomSelect
-            id="institute"
-            value={formValues.institute}
-            onChange={handleInputChange}
-            required
-            error={formErrors.institute}
-            roleColor={getRoleColor()}
-          >
-            <option value="">Select Institute</option>
-            <option value="bahria-karachi">Bahria Karachi</option>
-            <option value="bahria-islamabad">Bahria Islamabad</option>
-            <option value="bahria-lahore">Bahria Lahore</option>
-          </CustomSelect>
-          <CustomSelect
-            id="relation"
-            value={formValues.relation}
-            onChange={handleInputChange}
-            required
-            error={formErrors.relation}
-            roleColor={getRoleColor()}
-          >
-            <option value="">Parent/Child?</option>
-            <option value="parent">Parent</option>
-            <option value="child">Child</option>
-          </CustomSelect>
-        </>
-      )}
-
-      {formValues.role === 'faculty' && (
+  const renderSignUpFields = useCallback(() => {
+    const currentColor = getRoleColor();
+    
+    return (
+      <>
         <CustomInput
-          id="department"
-          placeholder="Enter your department"
-          value={formValues.department}
+          id="name"
+          placeholder="Enter your full name"
+          value={formValues.name}
           onChange={handleInputChange}
           required
-          error={formErrors.department}
-          roleColor={getRoleColor()}
+          error={formErrors.name}
+          roleColor={currentColor}
         />
-      )}
-
-      {formValues.role === 'admin' && (
         <CustomInput
-          id="accessCode"
-          placeholder="Enter admin access code"
-          value={formValues.accessCode}
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          value={formValues.email}
           onChange={handleInputChange}
           required
-          error={formErrors.accessCode}
-          roleColor={getRoleColor()}
+          error={formErrors.email}
+          roleColor={currentColor}
         />
-      )}
-    </>
-  );
+        <CustomInput
+          id="pass"
+          type="password"
+          placeholder="Create a password"
+          value={formValues.pass}
+          onChange={handleInputChange}
+          required
+          error={formErrors.pass}
+          roleColor={currentColor}
+        />
+        <CustomSelect
+          id="role"
+          value={formValues.role}
+          onChange={handleInputChange}
+          required
+          error={formErrors.role}
+          roleColor={currentColor}
+        >
+          <option value="">Select Role</option>
+          <option value="student">Student</option>
+          <option value="faculty">Faculty</option>
+          <option value="admin">Admin</option>
+        </CustomSelect>
+        {formValues.role === 'student' && (
+          <>
+            <CustomSelect
+              id="institute"
+              value={formValues.institute}
+              onChange={handleInputChange}
+              required
+              error={formErrors.institute}
+              roleColor={currentColor}
+            >
+              <option value="">Select Institute</option>
+              <option value="bahria-karachi">Bahria Karachi</option>
+              <option value="bahria-islamabad">Bahria Islamabad</option>
+              <option value="bahria-lahore">Bahria Lahore</option>
+            </CustomSelect>
+            <CustomSelect
+              id="relation"
+              value={formValues.relation}
+              onChange={handleInputChange}
+              required
+              error={formErrors.relation}
+              roleColor={currentColor}
+            >
+              <option value="">Parent/Child?</option>
+              <option value="parent">Parent</option>
+              <option value="child">Child</option>
+            </CustomSelect>
+          </>
+        )}
+        {formValues.role === 'faculty' && (
+          <CustomInput
+            id="department"
+            placeholder="Enter your department"
+            value={formValues.department}
+            onChange={handleInputChange}
+            required
+            error={formErrors.department}
+            roleColor={currentColor}
+          />
+        )}
+        {formValues.role === 'admin' && (
+          <CustomInput
+            id="accessCode"
+            placeholder="Enter admin access code"
+            value={formValues.accessCode}
+            onChange={handleInputChange}
+            required
+            error={formErrors.accessCode}
+            roleColor={currentColor}
+          />
+        )}
+      </>
+    );
+  }, [formValues, formErrors, handleInputChange, getRoleColor]);
 
   return (
     <div className={`relative min-h-screen overflow-hidden transition-colors duration-500 ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
       <div className={`fixed inset-0 transition-opacity duration-1500 ${showBG ? "opacity-100" : "opacity-0"}`}>
         <Aurora colorStops={["#f39c12", "#8311f2", "#f21311"]} blend={0.7} amplitude={0.8} speed={0.5} />
       </div>
-
       <div className="absolute top-5 right-5 z-20">
         <ThemeToggle/>
       </div>
-
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
         {loading ? (
           <div className="flex flex-col items-center gap-6">
@@ -528,25 +527,23 @@ const getRoleColor = (role = selectedCard) => {
         ) : (
           <>
             {selectedCard && (
-              <div 
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-all duration-500 z-30" 
+              <div
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-all duration-500 z-30"
                 onClick={handleClose}
               />
             )}
-
             <div className={`flex flex-col md:flex-row gap-6 z-40`}>
               {cardData.map((card) => {
                 const isSelected = selectedCard === card.title;
                 const isOtherCardSelected = selectedCard && !isSelected;
-
                 return (
                   <div
                     key={card.title}
                     className={`transition-all duration-300 ease-in-out ${
-                      isSelected 
-                        ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50' 
-                        : isOtherCardSelected 
-                          ? 'opacity-30 scale-50 pointer-events-none' 
+                      isSelected
+                        ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50'
+                        : isOtherCardSelected
+                          ? 'opacity-30 scale-50 pointer-events-none'
                           : 'relative cursor-pointer'
                     }`}
                   >
@@ -561,12 +558,12 @@ const getRoleColor = (role = selectedCard) => {
                     >
                       {isSelected ? (
                         <div className="flex flex-col justify-start gap-4 w-full max-w-md relative">
-                          <div 
-                            className="absolute -left-12 w-64 h-1 rounded-t" 
-                            style={{ 
-                              backgroundColor: card.color, 
+                          <div
+                            className="absolute -left-12 w-64 h-1 rounded-t"
+                            style={{
+                              backgroundColor: card.color,
                               transform: `translateY(${card.title === "Student" ? "-115px" : "-153px"})`
-                            }} 
+                            }}
                           />
                           <div className="flex flex-col items-center mt-8 gap-4 px-6">
                             <div className={`${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
@@ -576,18 +573,18 @@ const getRoleColor = (role = selectedCard) => {
                               {card.title} Login
                             </h2>
                           </div>
-                          <form 
-                            className="flex flex-col gap-4 w-full mt-2" 
+                          <form
+                            className="flex flex-col gap-4 w-full mt-2"
                             onSubmit={(e) => handleSubmit(e, card)}
                           >
                             {renderFormFields(card)}
-                            <button 
-                              type="submit" 
+                            <button
+                              type="submit"
                               className="relative inline-block px-6 py-3 mt-2 font-semibold text-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                               style={{ backgroundColor: card.color }}
                             >
-                              <span 
-                                className="absolute top-0 left-0 w-full h-full rounded-lg opacity-1 animate-pulse " 
+                              <span
+                                className="absolute top-0 left-0 w-full h-full rounded-lg opacity-1 animate-pulse "
                                 style={{ background: card.color }}
                               />
                               <span className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Login</span>
@@ -612,51 +609,45 @@ const getRoleColor = (role = selectedCard) => {
                 );
               })}
             </div>
-
             {!selectedCard && !showSignUp && (
               <div className="mt-6 z-40">
                 <span className="text-gray-500 dark:text-gray-400 text-sm">
                   Not Registered Yet?{' '}
-                  <button 
+                  <button
                     className="text-blue-500 font-semibold hover:underline transition-colors"
-                    onClick={() => setShowSignUp(true)}
+                    onClick={handleShowSignUp}
                   >
                     Sign Up
                   </button>
                 </span>
               </div>
             )}
-
             {showSignUp && (
               <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
-                <div 
+                <div
                   className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-all duration-300"
-                  onClick={() => setShowSignUp(false)}
+                  onClick={handleHideSignUp}
                 />
-                
                 <MagicCard
                   spotlightColor="#22c55e"
                   darkMode={darkMode}
-                  className="relative w-196  h-160 p-8 scale-85 transition-transform duration-300 z-50"
+                  className="relative w-196 h-160 p-8 scale-85 transition-transform duration-300 z-50"
                 >
-                  <div 
+                  <div
                     className="absolute top-0 left-0 w-full h-1 rounded-t"
                     style={{ backgroundColor: '#22c55e' }}
                   />
-                  
                   <div className="flex flex-col items-center mt-4 gap-2">
                     <User size={40} className={darkMode ? 'text-white' : 'text-gray-900'} />
                     <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                       Sign Up
                     </h2>
                   </div>
-
-                  <form 
+                  <form
                     className="flex flex-col gap-4 mt-4"
                     onSubmit={(e) => handleSubmit(e, { title: 'SignUp' })}
                   >
                     {renderSignUpFields()}
-                    
                     <button
                       type="submit"
                       className="relative inline-block px-6 py-3 mt-2 font-semibold text-white rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 bg-green-500 hover:scale-105 hover:shadow-2xl"

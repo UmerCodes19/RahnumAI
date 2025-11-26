@@ -87,7 +87,7 @@ export default function AdminHome() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-slate-600 dark:text-slate-400 mt-2"
+            className=" dark: mt-2"
           >
             Manage your institution's digital ecosystem
           </motion.p>
@@ -118,56 +118,7 @@ export default function AdminHome() {
               <QuickActions actions={quickActions} />
             </motion.div>
 
-            {/* Pending Requests */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
-            >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    Pending Approval Requests
-                  </h3>
-                  <span className="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full">
-                    {pendingRequests.length} pending
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {pendingRequests.map((request) => (
-                    <div
-                      key={request.id}
-                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
-                    >
-                      <div>
-                        <h4 className="font-medium text-slate-900 dark:text-white">
-                          {request.name}
-                        </h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          {request.type} • {request.date}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleApprove(request.id)}
-                          className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
-                        >
-                          <CheckCircle2 size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleReject(request.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                        >
-                          <XCircle size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+           
           </div>
 
           {/* Right Column - Recent Activity */}

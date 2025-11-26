@@ -1,182 +1,109 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User } from "lucide-react";
-import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
+import { useThemeGlobal } from "@/components/common/theme/ThemeProvider";
 
-export default function AIAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function AIAssistant({ accentColor }) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI assistant. How can I help you with your studies today?",
-      isBot: true,
-      timestamp: new Date()
+      text: "Hello! I'm your study assistant. How can I help?",
+      isBot: true
     }
   ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const messagesEndRef = useRef(null);
+
   const { theme } = useThemeGlobal();
-  const darkMode = theme === 'dark';
+  const darkMode = theme === "dark";
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const sendMessage = () => {
+    if (!input.trim()) return;
+    const userMsg = { id: Date.now(), text: input, isBot: false };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
-    
-    // Add user message
-    const userMessage = {
-      id: messages.length + 1,
-      text: inputMessage,
-      isBot: false,
-      timestamp: new Date()
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    
-    // Simulate AI response
     setTimeout(() => {
-      const botMessage = {
-        id: messages.length + 2,
-        text: "I understand your question about your studies. Let me help you with that. This is a simulated response from your AI learning assistant.",
-        isBot: true,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
+      setMessages((m) => [
+        ...m,
+        {
+          id: Date.now() + 1,
+          text: "This is a simulated study response.",
+          isBot: true
+        }
+      ]);
+    }, 800);
   };
 
   return (
     <>
-      {/* Floating button */}
-      {!isOpen && (
+      {/* FAB Button */}
+      {!open && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 hover:shadow-xl z-40"
-          style={{
-            background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)'
-          }}
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white"
+          style={{ background: accentColor }}
         >
-          <MessageCircle size={24} />
+          <MessageCircle size={26} />
         </button>
       )}
 
-      {/* Chat window */}
-      {isOpen && (
-        <div className={`fixed bottom-6 right-6 w-80 h-96 rounded-2xl shadow-2xl flex flex-col z-50 backdrop-blur-sm border transition-colors duration-300 ${
-          darkMode 
-            ? 'bg-slate-900/95 border-slate-700 text-white' 
-            : 'bg-white/95 border-slate-200 text-slate-900'
-        }`}>
-          
+      {/* Chat Window */}
+      {open && (
+        <div
+          className={`fixed bottom-6 right-6 w-80 h-96 rounded-2xl shadow-xl flex flex-col border
+          ${darkMode ? "bg-slate-900/95 border-slate-700" : "bg-white/95 border-slate-200"}`}
+        >
           {/* Header */}
           <div
-            className="flex items-center justify-between p-4 rounded-t-2xl text-white"
-            style={{
-              background: 'linear-gradient(135deg, #f97316 0%, #f59e0b 100%)'
-            }}
+            className="px-4 py-3 text-white flex justify-between items-center"
+            style={{ background: accentColor }}
           >
             <div className="flex items-center space-x-2">
-              <Bot size={20} />
-              <span className="font-semibold">Study Assistant</span>
+              <Bot size={18} />
+              <span className="font-semibold">AI Assistant</span>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1 hover:bg-white/20 rounded transition-colors"
-            >
-              <X size={18} />
+
+            <button onClick={() => setOpen(false)}>
+              <X className="text-white" />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
-              >
+          <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+            {messages.map((m) => (
+              <div key={m.id} className={`flex ${m.isBot ? "justify-start" : "justify-end"}`}>
                 <div
-                  className={`flex items-start space-x-2 max-w-[80%] ${
-                    message.isBot ? 'flex-row' : 'flex-row-reverse space-x-reverse'
+                  className={`px-4 py-2 rounded-2xl max-w-[80%] shadow
+                  ${m.isBot
+                    ? darkMode
+                      ? "bg-orange-900/30 border border-orange-800 text-orange-200"
+                      : "bg-orange-50 border border-orange-200"
+                    : "bg-blue-500 text-white"
                   }`}
                 >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.isBot
-                        ? 'bg-gradient-to-br from-orange-500 to-amber-500'
-                        : 'bg-gradient-to-br from-blue-500 to-cyan-500'
-                    }`}
-                  >
-                    {message.isBot ? (
-                      <Bot size={16} className="text-white" />
-                    ) : (
-                      <User size={16} className="text-white" />
-                    )}
-                  </div>
-                  <div
-                    className={`px-4 py-2 rounded-2xl ${
-                      message.isBot
-                        ? darkMode
-                          ? 'bg-orange-900/20 text-slate-200 border border-orange-800'
-                          : 'bg-orange-50 text-slate-800 border border-orange-200'
-                        : 'bg-blue-500 text-white'
-                    }`}
-                  >
-                    <p className="text-sm">{message.text}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.isBot 
-                        ? darkMode ? 'text-orange-400' : 'text-orange-600'
-                        : 'text-blue-100'
-                    }`}>
-                      {message.timestamp.toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
+                  {m.text}
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input area */}
-          <div className={`p-4 border-t transition-colors duration-300 ${
-            darkMode ? 'border-slate-700' : 'border-slate-200'
-          }`}>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your courses, assignments..."
-                className={`flex-1 px-3 py-2 rounded-lg border bg-transparent placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-300 ${
-                  darkMode
-                    ? 'border-slate-600 text-white placeholder-slate-400'
-                    : 'border-slate-300 text-slate-900 placeholder-slate-500'
-                }`}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={!inputMessage.trim()}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 text-white transition-all duration-300 hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1 shadow-md hover:shadow-lg"
-              >
-                <Send size={16} />
-              </button>
-            </div>
+          {/* Input */}
+          <div className="p-3 border-t flex items-center space-x-2">
+            <input
+              className={`flex-1 px-3 py-2 rounded-lg border outline-none
+              ${darkMode ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-300"}`}
+              placeholder="Ask something..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            />
+            <button
+              onClick={sendMessage}
+              className="p-2 rounded-lg text-white"
+              style={{ background: accentColor }}
+            >
+              <Send size={18} />
+            </button>
           </div>
         </div>
       )}

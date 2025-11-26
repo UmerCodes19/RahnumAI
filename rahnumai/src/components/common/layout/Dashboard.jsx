@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BookOpen, Users, BarChart3, FileText, Settings, LogOut, Menu,
   LayoutDashboard, Bell, HelpCircle, Trello, Clock, Award, Brain,
-  Calendar, Upload, UserCheck, Shield, GraduationCap, MessageCircle, TrendingUp,UserCog,UserPlus, User
+  Calendar, Upload, UserCheck, Shield, GraduationCap, MessageCircle, TrendingUp,UserCog,UserPlus, User, Sparkles
 } from 'lucide-react';
 import AIAssistant from '@/components/features/dashboard/common/AIAssistant';
 import ThemeToggle from '@/components/common/theme/ThemeToggle';
@@ -15,23 +15,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Dashboard({ onLogout }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
-
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
-
   const userRole = localStorage.getItem('userRole') || 'student';
   const userData = JSON.parse(localStorage.getItem('userData') || '{}');
 
   const roleColors = {
-    student: "#f39c12", // Orange
-    faculty: "#8311f2", // Purple
-    admin: "#f21311"    // Red
+    student: { primary: "#f39c12", gradient: "from-orange-500 to-amber-500", glass: "rgba(243, 156, 18, 0.1)" },
+    faculty: { primary: "#8311f2", gradient: "from-purple-600 to-violet-500", glass: "rgba(131, 17, 242, 0.1)" },
+    admin: { primary: "#f21311", gradient: "from-red-500 to-rose-500", glass: "rgba(242, 19, 17, 0.1)" }
   };
-
-
 
   const roleIcons = {
     student: User,
@@ -43,8 +39,7 @@ export default function Dashboard({ onLogout }) {
     student: [
       { icon: LayoutDashboard, label: 'Overview', path: '/dashboard' },
       { icon: BookOpen, label: 'My Courses', path: '/dashboard/courses' },
-            { icon: TrendingUp, label: 'Leaderboard', path: '/dashboard/leaderboard' },
-
+      { icon: TrendingUp, label: 'Leaderboard', path: '/dashboard/leaderboard' },
       { icon: FileText, label: 'Assignments', path: '/dashboard/assignments' },
       { icon: HelpCircle, label: 'Quizzes', path: '/dashboard/quizzes' },
       { icon: Bell, label: 'Announcements', path: '/dashboard/announcements' },
@@ -104,17 +99,14 @@ export default function Dashboard({ onLogout }) {
         role: 'admin'
       }
     };
-
     const userData = mockUsers[newRole];
     localStorage.setItem('userRole', newRole);
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('authToken', `mock-token-${newRole}-${Date.now()}`);
-    
     setShowRoleSwitcher(false);
     window.location.reload();
   };
 
-  // Smooth scroll for sidebar
   useEffect(() => {
     const sidebar = document.querySelector('.sidebar-content');
     if (sidebar) {
@@ -124,14 +116,15 @@ export default function Dashboard({ onLogout }) {
           sidebar.scrollTop += e.deltaY;
         }
       };
-      
       sidebar.addEventListener('wheel', handleWheel, { passive: false });
       return () => sidebar.removeEventListener('wheel', handleWheel);
     }
   }, []);
 
   const currentItems = menuItems[userRole] || menuItems.student;
-  const accentColor = roleColors[userRole] || "#f39c12";
+  const currentRoleColor = roleColors[userRole] || roleColors.student;
+  const accentColor = currentRoleColor.primary;
+  const gradientClass = currentRoleColor.gradient;
 
   const isActive = (path) => {
     if (path === '/dashboard') return location.pathname === '/dashboard';
@@ -143,93 +136,83 @@ export default function Dashboard({ onLogout }) {
     setMobileSidebarOpen(false);
   };
 
-  // Smooth scroll for sidebar
-  useEffect(() => {
-    const sidebar = document.querySelector('.sidebar-content');
-    if (sidebar) {
-      const handleWheel = (e) => {
-        if (e.deltaY !== 0) {
-          e.preventDefault();
-          sidebar.scrollTop += e.deltaY;
-        }
-      };
-      
-      sidebar.addEventListener('wheel', handleWheel, { passive: false });
-      return () => sidebar.removeEventListener('wheel', handleWheel);
-    }
-  }, []);
-
   return (
-    <div className={`flex h-screen relative overflow-hidden transition-colors duration-300 ${
+    <div className={`flex h-screen relative overflow-hidden transition-colors duration-5 ${
       darkMode ? 'bg-slate-900' : 'bg-slate-50'
     }`}>
-      {/* Background */}
+      {/* Enhanced Aurora Background with Role-based Colors */}
       <div className="fixed inset-0 z-0">
         <Aurora
           colorStops={[accentColor, accentColor, accentColor]}
-          blend={0.5}
-          amplitude={0.6}
-          speed={0.3}
+          blend={0.3}
+          amplitude={0.4}
+          speed={0.2}
         />
+        <div className={`absolute inset-0 bg-gradient-to-br ${
+          darkMode 
+            ? 'from-slate-900/80 via-slate-900/60 to-slate-900/80' 
+            : 'from-white/60 via-white/40 to-white/60'
+        } backdrop-blur-[2px]`} />
       </div>
 
-{/* Quick Role Switcher Button */}
+      {/* Enhanced Role Switcher */}
       <motion.button
         onClick={() => setShowRoleSwitcher(!showRoleSwitcher)}
-        className={`fixed top-20 right-6 z-50 p-3 rounded-xl backdrop-blur-md border shadow-lg transition-all duration-300 ${
+        className={`fixed top-20 right-6 z-50 p-3 rounded-2xl backdrop-blur-xl border-2 shadow-2xl transition-all duration-300 ${
           darkMode
-            ? 'bg-slate-800/80 border-slate-700 text-white hover:bg-slate-700/80'
-            : 'bg-white/80 border-slate-200 text-slate-900 hover:bg-white'
+            ? 'bg-slate-800/60 border-slate-600/50 text-white hover:bg-slate-700/60 hover:border-slate-500'
+            : 'bg-white/60 border-slate-200/50 text-slate-900 hover:bg-white/80 hover:border-slate-300'
         }`}
-        whileHover={{ scale: 1.05 }}
+        whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
         title="Quick Role Switcher"
       >
-        <UserCog className="w-5 h-5" />
+        <Sparkles className="w-5 h-5" />
       </motion.button>
 
-      {/* Role Switcher Dropdown */}
+      {/* Enhanced Role Switcher Panel */}
       <AnimatePresence>
         {showRoleSwitcher && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed top-32 right-6 z-50 w-48 rounded-xl shadow-lg border backdrop-blur-md ${
+            transition={{ duration: 0.2, type: "spring", stiffness: 300, damping: 25 }}
+            className={`fixed top-32 right-6 z-50 w-56 rounded-2xl shadow-2xl border-2 backdrop-blur-xl ${
               darkMode
-                ? 'bg-slate-800/90 border-slate-700 text-white'
-                : 'bg-white/90 border-slate-200 text-slate-900'
+                ? 'bg-slate-800/80 border-slate-600/50 text-white'
+                : 'bg-white/80 border-slate-200/50 text-slate-900'
             }`}
           >
-            <div className="p-2">
+            <div className="p-3">
               <div className={`px-3 py-2 border-b ${
-                darkMode ? 'border-slate-700' : 'border-slate-200'
+                darkMode ? 'border-slate-600/50' : 'border-slate-200/50'
               }`}>
-                <h3 className="font-semibold text-sm">Switch Role</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Quick test different views</p>
+                <h3 className="font-bold text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Switch Role
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Quick test different views</p>
               </div>
-              
               {['student', 'faculty', 'admin'].map((role) => {
                 const Icon = roleIcons[role];
+                const roleColor = roleColors[role];
                 return (
                   <button
                     key={role}
                     onClick={() => switchRole(role)}
-                    className={`w-full flex items-center space-x-3 px-3 py-2 text-sm rounded-lg transition-colors mt-1 ${
+                    className={`w-full flex items-center space-x-3 px-3 py-3 text-sm rounded-xl transition-all duration-300 mt-2 group ${
                       userRole === role
-                        ? darkMode
-                          ? 'bg-orange-500/20 text-orange-400'
-                          : 'bg-orange-500/20 text-orange-600'
+                        ? `bg-gradient-to-r ${roleColor.gradient} text-white shadow-lg`
                         : darkMode
-                        ? 'text-slate-300 hover:bg-slate-700'
-                        : 'text-slate-700 hover:bg-slate-100'
+                        ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+                        : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                    <span className="capitalize">{role}</span>
+                    <span className="capitalize font-medium">{role}</span>
                     {userRole === role && (
-                      <span className="ml-auto text-xs bg-orange-500 text-white px-2 py-1 rounded-full">
+                      <span className="ml-auto text-xs bg-white/20 text-white px-2 py-1 rounded-full backdrop-blur-sm">
                         Current
                       </span>
                     )}
@@ -241,91 +224,144 @@ export default function Dashboard({ onLogout }) {
         )}
       </AnimatePresence>
 
-
-      {/* Sidebar */}
-      <div className={`backdrop-blur-md border-r transition-all duration-300 ${
-        sidebarCollapsed ? 'w-22' : 'w-64'
-      } ${mobileSidebarOpen ? 'fixed left-0 top-0 h-full z-50' : 'hidden lg:flex'} flex-col relative z-30 ${
-        darkMode
-          ? 'bg-slate-800/90 border-slate-700 text-white'
-          : 'bg-white/90 border-slate-200 text-slate-900'
-      }`}>
-        {/* Logo Section */}
-        <div className="p-4 border-b flex items-center justify-between">
+      {/* Enhanced Sidebar with Glass Morphism */}
+      <motion.div 
+        className={`backdrop-blur-xl border-r-2 transition-all duration-500 ease-out ${
+          sidebarCollapsed ? 'w-20' : 'w-72'
+        } ${mobileSidebarOpen ? 'fixed left-0 top-0 h-full z-50' : 'hidden lg:flex'} flex-col relative z-30 ${
+          darkMode
+            ? 'bg-slate-800/70 border-slate-600/30 text-white shadow-2xl'
+            : 'bg-white/70 border-slate-200/30 text-slate-900 shadow-2xl'
+        }`}
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Enhanced Sidebar Header */}
+        <div className="p-6 border-b border-slate-200/30 dark:border-slate-600/30 flex items-center justify-between">
           {!sidebarCollapsed && (
-            <div className="flex items-center space-x-2">
+            <motion.div 
+              className="flex items-center space-x-3"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold"
-                style={{ backgroundColor: accentColor }}
+                className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shadow-lg bg-gradient-to-r ${gradientClass}`}
               >
-                R
+                <Sparkles className="w-5 h-5" />
               </div>
-              <span className="font-bold text-lg">RahnumAI</span>
-            </div>
+              <div>
+                <span className="font-bold text-lg bg-gradient-to-r bg-clip-text text-transparent" style={{ backgroundImage: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)` }}>
+                  RahnumAI
+                </span>
+                <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{userRole}</p>
+              </div>
+            </motion.div>
           )}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className={`p-1.5 rounded-lg transition-colors hidden lg:block ${
-              darkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-100'
+            className={`p-2 rounded-xl transition-all duration-300 backdrop-blur-sm ${
+              darkMode 
+                ? 'hover:bg-slate-700/50 border border-slate-600/30' 
+                : 'hover:bg-slate-100/50 border border-slate-200/30'
             }`}
           >
-            {sidebarCollapsed ? '→' : '←'}
+            {sidebarCollapsed ? 
+              <Menu className="w-4 h-4" /> : 
+              <span className="text-sm font-semibold">← Collapse</span>
+            }
           </button>
         </div>
 
-        {/* Navigation */}
+        {/* Enhanced Navigation */}
         <nav className="flex-1 p-4 space-y-2 sidebar-content overflow-y-auto smooth-scroll">
-          {currentItems.map((item) => (
-            <button
-              key={item.path}
-              onClick={() => handleNavigation(item.path)}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group w-full text-left ${
-                isActive(item.path)
-                  ? 'bg-opacity-20'
-                  : darkMode
-                  ? 'text-slate-400 hover:bg-slate-700 hover:text-slate-100'
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-              style={{
-                backgroundColor: isActive(item.path) ? `${accentColor}20` : 'transparent',
-                color: isActive(item.path) ? accentColor : ''
-              }}
-            >
-               <item.icon className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} /> {/* Larger icons when collapsed */}
-              {!sidebarCollapsed && (
-                <span className="font-medium">{item.label}</span>
-              )}
-            </button>
+          {currentItems.map((item, index) => (
+            <motion.button
+  key={item.path}
+  onClick={() => handleNavigation(item.path)}
+  className={`flex items-center px-4 py-3 rounded-xl transition-all duration-300 group w-full text-left relative overflow-hidden
+    ${sidebarCollapsed ? 'justify-center' : 'space-x-3'}
+    ${
+      isActive(item.path)
+        ? 'shadow-lg scale-[1.02]'
+        : darkMode
+        ? 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-100 hover:scale-[1.01]'
+        : 'text-slate-600 hover:bg-slate-100/50 hover:text-slate-900 hover:scale-[1.01]'
+    }
+  `}
+  style={{
+    backgroundColor: isActive(item.path) ? `${accentColor}15` : 'transparent',
+    border: isActive(item.path) ? `1px solid ${accentColor}30` : '1px solid transparent',
+    color: isActive(item.path) ? accentColor : ''
+  }}
+  whileHover={{ scale: 1.02 }}
+  whileTap={{ scale: 0.98 }}
+>
+  {/* ICON - Always visible with proper sizing */}
+  <item.icon
+    className={`
+      flex-shrink-0
+      ${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}
+      transition-all duration-300
+      ${isActive(item.path) ? 'scale-110' : 'scale-100'}
+    `}
+  />
+
+  {/* LABEL - Only when not collapsed */}
+  {!sidebarCollapsed && (
+    <motion.span
+      className="font-medium text-sm flex-1 truncate"
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      transition={{ duration: 0.2 }}
+    >
+      {item.label}
+    </motion.span>
+  )}
+
+ 
+
+  {/* HOVER EFFECT - Subtle background glow */}
+  <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+    darkMode ? 'bg-white/5' : 'bg-black/3'
+  }`} />
+</motion.button>
           ))}
         </nav>
-      </div>
 
-      {/* Mobile overlay */}
+       
+      </motion.div>
+
+      {/* Mobile Overlay */}
       {mobileSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+        <motion.div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setMobileSidebarOpen(false)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         />
       )}
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-20">
-        {/* Topbar */}
-        <Topbar 
-          onMenuClick={() => setMobileSidebarOpen(true)} 
+        <Topbar
+          onMenuClick={() => setMobileSidebarOpen(true)}
           onLogout={onLogout}
+          roleColor={currentRoleColor}
         />
-
-        {/* Main Content Area */}
+        
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 lg:p-6 relative z-10">
+          <div className="p-6 lg:p-8 relative z-10">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* AI Assistant for Students */}
-      {userRole === 'student' && <AIAssistant />}
+      {/* Enhanced AI Assistant */}
+      {userRole === 'student' && <AIAssistant roleColor={currentRoleColor} />}
     </div>
   );
 }

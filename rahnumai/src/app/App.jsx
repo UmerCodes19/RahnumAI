@@ -41,6 +41,7 @@ import ChatSystem from '@/components/features/social/ChatSystem';
 
 
 import { ApiProvider } from '@/contexts/ApiContext';
+import StudentAttendance from '../components/features/dashboard/student/StudentAttendance';
 
 
 const AdminRoute = ({ children }) => {
@@ -190,6 +191,7 @@ function AppContent() {
               <Route path="announcements" element={<Announcements />} />
               <Route path="taskboard" element={<TaskBoard />} />
               <Route path="leaderboard" element={<Leaderboard />} />
+              <Route path="student-attendance" element={<StudentAttendance/>} />
 
               {/* Faculty Routes */}
               <Route path="students" element={<FacultyStudents />} />

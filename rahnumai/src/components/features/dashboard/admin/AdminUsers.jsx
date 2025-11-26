@@ -71,10 +71,10 @@ export default function AdminUsers() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
           <div>
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+            <h1 className={`text-3xl font-bold ${darkMode ? '' : ''}`}>
               User Management
             </h1>
-            <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} mt-2`}>
+            <p className={`${darkMode ? '' : ''} mt-2`}>
               Manage all users across the platform
             </p>
           </div>

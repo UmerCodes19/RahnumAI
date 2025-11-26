@@ -85,12 +85,12 @@ export default function StudentHome() {
       {/* Header */}
       <div className="mb-8">
         <h1 className={`text-3xl font-bold mb-2 ${
-          darkMode ? 'text-white' : 'text-slate-900'
+          darkMode ? 'text-white' : ''
         }`}>
           Welcome back, Student! 👋
         </h1>
         <p className={`${
-          darkMode ? 'text-slate-400' : 'text-slate-600'
+          darkMode ? '' : ''
         }`}>
           Here's your learning overview for today.
         </p>

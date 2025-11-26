@@ -78,10 +78,10 @@ export default function AdminApprovals() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+          <h1 className={`text-3xl font-bold ${darkMode ? '' : ''}`}>
             Registration Approvals
           </h1>
-          <p className={`${darkMode ? 'text-slate-400' : 'text-slate-600'} mt-2`}>
+          <p className={`${darkMode ? '' : ''} mt-2`}>
             Review and manage pending registration requests
           </p>
         </div>
