@@ -17,6 +17,7 @@ import Assignments from "@/components/features/dashboard/student/Assignments";
 import Quizzes from "@/components/features/dashboard/student/Quizzes";
 import Announcements from "@/components/features/dashboard/student/Announcements";
 import TaskBoard from "@/components/features/dashboard/student/TaskBoard";
+import Leaderboard from '../components/features/dashboard/student/Leaderboard';
 
 import FacultyHome from "@/components/features/dashboard/faculty/FacultyHome";
 import FacultyStudents from "@/components/features/dashboard/faculty/FacultyStudents";
@@ -188,7 +189,8 @@ function AppContent() {
               <Route path="quizzes" element={<Quizzes />} />
               <Route path="announcements" element={<Announcements />} />
               <Route path="taskboard" element={<TaskBoard />} />
-              
+              <Route path="leaderboard" element={<Leaderboard />} />
+
               {/* Faculty Routes */}
               <Route path="students" element={<FacultyStudents />} />
               <Route path="attendance" element={<FacultyAttendance />} />
@@ -228,6 +230,10 @@ function AppContent() {
 <Route path="generator" element={<PaperGenerator />} />
 <Route path="chat" element={<ChatSystem />} />
             
+
+<Route path="settings" element={<Settings />} />
+
+
             </Route>
 
             {/* Root Route */}
