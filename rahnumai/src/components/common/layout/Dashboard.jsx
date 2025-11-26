@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   BookOpen, Users, BarChart3, FileText, Settings, LogOut, Menu,
   LayoutDashboard, Bell, HelpCircle, Trello, Clock, Award, Brain,
-  Calendar, Upload, UserCheck, Shield, GraduationCap
+  Calendar, Upload, UserCheck, Shield, GraduationCap, MessageCircle, TrendingUp
 } from 'lucide-react';
 import AIAssistant from '@/components/features/dashboard/common/AIAssistant';
 import ThemeToggle from '@/components/common/theme/ThemeToggle';
@@ -36,13 +36,19 @@ export default function Dashboard({ onLogout }) {
       { icon: Bell, label: 'Announcements', path: '/dashboard/announcements' },
       { icon: Trello, label: 'TaskBoard', path: '/dashboard/taskboard' },
       { icon: Brain, label: 'AI Assistant', path: '/dashboard/assistant' },
+      { icon: Brain, label: 'AI Learning', path: '/dashboard/learning' },
+    { icon: TrendingUp, label: 'Predictions', path: '/dashboard/predictions' },
+    { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
     ],
     faculty: [
       { icon: BookOpen, label: 'My Classes', path: '/dashboard' },
       { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+      { icon: TrendingUp, label: 'Class Performance', path: '/dashboard/class-performance' },
+          { icon: FileText, label: 'Paper Generator', path: '/dashboard/generator' },
       { icon: Users, label: 'Students', path: '/dashboard/students' },
       { icon: FileText, label: 'Attendance', path: '/dashboard/attendance' },
       { icon: Upload, label: 'Materials', path: '/dashboard/materials' },
+          { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
       { icon: Bell, label: 'Announcements', path: '/dashboard/announcements' },
     ],
     admin: [

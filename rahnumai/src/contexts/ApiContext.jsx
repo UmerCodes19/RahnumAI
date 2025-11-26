@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import api from '@/services/api'; // Import the default export
+import api from '@/services/api';
 
 const ApiContext = createContext();
 
@@ -13,98 +13,161 @@ export const useApi = () => {
 };
 
 export const ApiProvider = ({ children }) => {
-  // Generic API call with error handling
+  // Generic API Handler
   const callAPI = useCallback(async (apiFunction, ...args) => {
     try {
       const response = await apiFunction(...args);
       return response;
     } catch (error) {
       console.error('API Error:', error);
-      
-      // Handle specific error cases
-      if (error.message.includes('401') || error.message.includes('token')) {
-        // Token expired or invalid
+
+      if (error.message?.includes('401') || error.message?.includes('token')) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userData');
-        window.location.href = '/login';
         toast.error('Session expired. Please login again.');
-      } else if (error.message.includes('Network Error')) {
+        window.location.href = '/login';
+      } else if (error.message?.includes('Network Error')) {
         toast.error('Network error. Please check your connection.');
       } else {
         toast.error(error.message || 'Something went wrong');
       }
-      
       throw error;
     }
   }, []);
 
-  // Auth methods
-  const login = useCallback(async (credentials) => {
-    return callAPI(api.auth.login, credentials);
-  }, [callAPI]);
+  // Auth
+  const login = useCallback(
+    (credentials) => callAPI(api.auth.login, credentials),
+    [callAPI]
+  );
 
-  const signUp = useCallback(async (userData) => {
-    return callAPI(api.auth.signUp, userData);
-  }, [callAPI]);
+  const signUp = useCallback(
+    (userData) => callAPI(api.auth.signUp, userData),
+    [callAPI]
+  );
 
-  // User methods
-  const getProfile = useCallback(async () => {
-    return callAPI(api.users.getProfile);
-  }, [callAPI]);
+  // User
+  const getProfile = useCallback(
+    () => callAPI(api.users.getProfile),
+    [callAPI]
+  );
 
-  // Course methods
-  const getCourses = useCallback(async (filters = {}) => {
-    return callAPI(api.courses.getCourses, filters);
-  }, [callAPI]);
+  // Courses
+  const getCourses = useCallback(
+    (filters = {}) => callAPI(api.courses.getCourses, filters),
+    [callAPI]
+  );
 
-  const createCourse = useCallback(async (courseData) => {
-    return callAPI(api.courses.createCourse, courseData);
-  }, [callAPI]);
+  const createCourse = useCallback(
+    (courseData) => callAPI(api.courses.createCourse, courseData),
+    [callAPI]
+  );
 
-  // Assignment methods
-  const getAssignments = useCallback(async (filters = {}) => {
-    return callAPI(api.assignments.getAssignments, filters);
-  }, [callAPI]);
+  // Assignments
+  const getAssignments = useCallback(
+    (filters = {}) => callAPI(api.assignments.getAssignments, filters),
+    [callAPI]
+  );
 
-  const submitAssignment = useCallback(async (assignmentId, submissionData) => {
-    return callAPI(api.assignments.submitAssignment, assignmentId, submissionData);
-  }, [callAPI]);
+  const submitAssignment = useCallback(
+    (assignmentId, submissionData) =>
+      callAPI(api.assignments.submitAssignment, assignmentId, submissionData),
+    [callAPI]
+  );
 
-  // Analytics methods
-  const getDashboardStats = useCallback(async () => {
-    return callAPI(api.analytics.getDashboardStats);
-  }, [callAPI]);
+  // Analytics
+  const getDashboardStats = useCallback(
+    () => callAPI(api.analytics.getDashboardStats),
+    [callAPI]
+  );
 
-  // AI methods
-  const chatWithAI = useCallback(async (message, context = {}) => {
-    return callAPI(api.ai.chat, message, context);
-  }, [callAPI]);
+  // AI – Chat
+  const chatWithAI = useCallback(
+    (message, context = {}) => callAPI(api.ai.chat, message, context),
+    [callAPI]
+  );
 
+  // AI – Learning Path
+  const generateLearningPath = useCallback(
+    async (studentData, preferences) =>
+      callAPI(async () => ({
+        path: [
+          {
+            module: 'Mathematics Fundamentals',
+            duration: '2 weeks',
+            resources: ['Video Lectures', 'Practice Problems'],
+            objectives: ['Master basic algebra', 'Understand functions'],
+          },
+        ],
+      })),
+    [callAPI]
+  );
+
+  // AI – Grade Prediction
+  const predictGrades = useCallback(
+    (studentPerformance) =>
+      callAPI(async () => ({
+        predictions: [
+          { course: 'Mathematics', predictedGrade: 85, confidence: 0.92 },
+          { course: 'Physics', predictedGrade: 78, confidence: 0.85 },
+        ],
+      })),
+    [callAPI]
+  );
+
+  // AI – Well-being Analysis
+  const analyzeWellBeing = useCallback(
+    (studentData) =>
+      callAPI(async () => ({
+        score: 7.5,
+        riskFactors: ['Sleep deprivation', 'High workload'],
+        recommendations: ['Take regular breaks', 'Maintain sleep schedule'],
+      })),
+    [callAPI]
+  );
+
+  // AI – Exam Paper Generator
+  const generateExamPaper = useCallback(
+    (config) =>
+      callAPI(async () => ({
+        paper: {
+          title: `${config.subject} Examination`,
+          questions: Array.from(
+            { length: config.totalQuestions },
+            (_, i) => ({
+              id: i + 1,
+              text: `Sample question ${i + 1}`,
+              marks: config.totalMarks / config.totalQuestions,
+            })
+          ),
+        },
+      })),
+    [callAPI]
+  );
+
+  // Expose Everything
   const value = {
-    // Auth
     login,
     signUp,
-    
-    // Users
     getProfile,
-    
-    // Courses
+
     getCourses,
     createCourse,
-    
-    // Assignments
+
     getAssignments,
     submitAssignment,
-    
-    // Analytics
+
     getDashboardStats,
-    
-    // AI
+
     chatWithAI,
-    
-    // Raw API access (use sparingly)
-    api,
+
+    generateLearningPath,
+    predictGrades,
+    analyzeWellBeing,
+    generateExamPaper,
+
+    api, // raw access
   };
 
   return (

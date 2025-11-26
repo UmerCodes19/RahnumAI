@@ -54,6 +54,9 @@ const Assignments = () => {
     }
   ]);
 
+  const [courseFilter, setCourseFilter] = useState('all');
+  
+
   const stats = [
     { title: "Due This Week", value: "3", subtitle: "Assignments pending", icon: Clock, color: "orange" },
     { title: "Submitted", value: "2", subtitle: "Completed assignments", icon: CheckCircle, color: "green" },
@@ -68,6 +71,7 @@ const Assignments = () => {
         : assignment
     ));
   };
+  
 
   return (
     <div className="space-y-6">
@@ -98,6 +102,39 @@ const Assignments = () => {
           />
         ))}
       </div>
+
+      <Card className="p-4">
+  <div className="flex flex-col sm:flex-row gap-4">
+    <div className="flex-1">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        Filter by Course
+      </label>
+      <select
+        value={courseFilter}
+        onChange={(e) => setCourseFilter(e.target.value)}
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+      >
+        <option value="all">All Courses</option>
+        <option value="MATH101">Mathematics 101</option>
+        <option value="CS101">Computer Science</option>
+        <option value="PHY101">Physics</option>
+      </select>
+    </div>
+    <div className="flex-1">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        Filter by Status
+      </label>
+      <select
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+      >
+        <option value="all">All Status</option>
+        <option value="available">Available</option>
+        <option value="completed">Completed</option>
+        <option value="upcoming">Upcoming</option>
+      </select>
+    </div>
+  </div>
+</Card>
 
       {/* Assignments Grid */}
       <div className="grid grid-cols-1 gap-6">

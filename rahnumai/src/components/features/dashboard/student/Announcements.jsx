@@ -48,6 +48,9 @@ const Announcements = () => {
     }
   ]);
 
+const [courseFilter, setCourseFilter] = useState('all');
+
+
   const stats = [
     { title: "Total Announcements", value: "12", subtitle: "This month", icon: Bell, color: "blue" },
     { title: "High Priority", value: "3", subtitle: "Important updates", icon: Megaphone, color: "orange" },
@@ -82,6 +85,39 @@ const Announcements = () => {
           />
         ))}
       </div>
+
+      <Card className="p-4">
+  <div className="flex flex-col sm:flex-row gap-4">
+    <div className="flex-1">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        Filter by Course
+      </label>
+      <select
+        value={courseFilter}
+        onChange={(e) => setCourseFilter(e.target.value)}
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+      >
+        <option value="all">All Courses</option>
+        <option value="MATH101">Mathematics 101</option>
+        <option value="CS101">Computer Science</option>
+        <option value="PHY101">Physics</option>
+      </select>
+    </div>
+    <div className="flex-1">
+      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+        Filter by Status
+      </label>
+      <select
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+      >
+        <option value="all">All Status</option>
+        <option value="available">Available</option>
+        <option value="completed">Completed</option>
+        <option value="upcoming">Upcoming</option>
+      </select>
+    </div>
+  </div>
+</Card>
 
       {/* Category Filter */}
       <div className="flex space-x-2 overflow-x-auto pb-2">

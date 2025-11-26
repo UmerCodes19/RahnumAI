@@ -22,6 +22,7 @@ import FacultyHome from "@/components/features/dashboard/faculty/FacultyHome";
 import FacultyStudents from "@/components/features/dashboard/faculty/FacultyStudents";
 import FacultyAttendance from "@/components/features/dashboard/faculty/FacultyAttendance";
 import FacultyAnalytics from "@/components/features/dashboard/faculty/FacultyAnalytics";
+import ClassPerformance from '@/components/features/dashboard/faculty/FacultyClassPerformance';
 
 // Admin Components
 import AdminHome from '@/components/features/dashboard/admin/AdminHome';
@@ -30,6 +31,13 @@ import AdminFaculty from '@/components/features/dashboard/admin/AdminFaculty';
 import AdminAnalytics from '@/components/features/dashboard/admin/AdminAnalytics';
 import AdminUsers from '@/components/features/dashboard/admin/AdminUsers';
 import AdminCourses from '@/components/features/dashboard/admin/AdminCourses';
+
+
+import PersonalizedLearning from '@/components/features/ai/PersonalizedLearning';
+import GradePredictor from '@/components/features/ai/GradePredictor';
+import PaperGenerator from '@/components/features/ai/PaperGenerator';
+import ChatSystem from '@/components/features/social/ChatSystem';
+
 
 import { ApiProvider } from '@/contexts/ApiContext';
 
@@ -185,7 +193,8 @@ function AppContent() {
               <Route path="students" element={<FacultyStudents />} />
               <Route path="attendance" element={<FacultyAttendance />} />
               <Route path="analytics" element={<FacultyAnalytics />} />
-              
+              <Route path="class-performance" element={<ClassPerformance />} />
+
               {/* Admin Routes */}
               <Route path="admin/approvals" element={
                 <AdminRoute>
@@ -214,6 +223,10 @@ function AppContent() {
   </AdminRoute>
 } />
               
+              <Route path="learning" element={<PersonalizedLearning />} />
+<Route path="predictions" element={<GradePredictor />} />
+<Route path="generator" element={<PaperGenerator />} />
+<Route path="chat" element={<ChatSystem />} />
             
             </Route>
 
