@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-import Aurora from "@/components/Aurora";
-import ThemeToggle from "@/components/ThemeToggle";
-import { useThemeGlobal } from "@/components/ThemeProvider";
+import Aurora from "@/components/visual/Aurora";
+import ThemeToggle from '@/components/common/theme/ThemeToggle';
+import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import {
   Rocket,
   Sparkles as SparklesIcon,
@@ -21,20 +21,20 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/common/ui/buttons/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { BackgroundBeams } from "@/components/ui/background-beams";
-import { Sparkles } from "@/components/ui/sparkles";
-import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
-import { WavyBackground } from "@/components/ui/wavy-background";
-import { NumberTicker } from "@/components/ui/NumberTicker";
-import { TypewriterEffect } from "@/components/ui/TypewriterEffect";
+} from "@/components/common/ui/cards/landingcard";
+import { BackgroundBeams } from "@/components/common/ui/effects/background-beams";
+import { Sparkles } from "@/components/common/ui/effects/sparkles";
+import { TextGenerateEffect } from "@/components/common/ui/effects/text-generate-effect";
+import { WavyBackground } from "@/components/common/ui/effects/wavy-background";
+import { NumberTicker } from "@/components/common/ui/utils/NumberTicker";
+import { TypewriterEffect } from "@/components/common/ui/effects/TypewriterEffect";
 
 const COLOR_SCHEME = {
   primary: "#f97316",
