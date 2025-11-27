@@ -145,7 +145,7 @@ export default function Dashboard({ onLogout }) {
         <Aurora
           colorStops={[accentColor, accentColor, accentColor]}
           blend={0.3}
-          amplitude={0.4}
+          amplitude={0.6}
           speed={0.2}
         />
         <div className={`absolute inset-0 bg-gradient-to-br ${
@@ -269,7 +269,7 @@ export default function Dashboard({ onLogout }) {
           >
             {sidebarCollapsed ? 
               <Menu className="w-4 h-4" /> : 
-              <span className="text-sm font-semibold">← Collapse</span>
+              <span className="text-sm font-semibold">←</span>
             }
           </button>
         </div>
