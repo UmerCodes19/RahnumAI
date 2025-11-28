@@ -2,20 +2,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Import your team member images
-import alexImage from '@/assets/img/team1.png';
-import sarahImage from '@/assets/img/team2.png';
-import mikeImage from '@/assets/img/team3.png';
-import priyaImage from '@/assets/img/team4.png';
-
-import bg1 from '@/assets/img/bg1-2.jpg';
-import bg2 from '@/assets/img/bg2-2.jpg';
-import bg3 from '@/assets/img/bg3.jpg';
-import bg4 from '@/assets/img/bg4.jpg';
-
-import backgroundMusic from '@/assets/music/Breaking Bad_ Grand Theft Auto IV Intro [4rfeKl64yC0].mp3';
-
 const TransitionOverlay = ({ show, onComplete, userTriggered }) => {
+
+const backgroundMusic = "/music/intro.mp3";
+const alexImage = "/img/team1.png";
+const sarahImage = "/img/team2.png";
+const mikeImage = "/img/team3.png";
+const priyaImage = "/img/team4.png";
+
+const bg1 = "/img/bg1-2.jpg";
+const bg2 = "/img/bg2-2.jpg";
+const bg3 = "/img/bg3.jpg";
+const bg4 = "/img/bg4.jpg";
+
+
+
   const [currentStep, setCurrentStep] = useState(0);
   const [showTeam, setShowTeam] = useState(false);
   const [currentMember, setCurrentMember] = useState(0);
