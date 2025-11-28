@@ -7,7 +7,7 @@ import usePreloadAssets from '@/hooks/usePreloadAssets.js';
 
 const TransitionOverlay = ({ show, onComplete, userTriggered }) => {
 
-const backgroundMusic = "/music/intro.mp3";
+const backgroundMusic = "/music/intro-new.mp3";
 const alexImage = "/img/team1.png";
 const sarahImage = "/img/team2.png";
 const mikeImage = "/img/team3.png";
@@ -21,7 +21,7 @@ const bg4 = "/img/bg4.jpg";
 const assetsImages = [alexImage, sarahImage, mikeImage, priyaImage, bg1, bg2, bg3, bg4];
 const assetsAudio = [backgroundMusic];
 
-usePreloadAssets(assetsImages, assetsAudio);
+const assetsLoaded = usePreloadAssets(assetsImages, assetsAudio);
 
 
   const [currentStep, setCurrentStep] = useState(0);
