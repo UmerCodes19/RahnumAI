@@ -1,6 +1,9 @@
 /* FULL UPDATED TransitionOverlay.jsx */
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import usePreloadAssets from '@/hooks/usePreloadAssets.js';
+
+
 
 const TransitionOverlay = ({ show, onComplete, userTriggered }) => {
 
@@ -15,6 +18,10 @@ const bg2 = "/img/bg2-2.jpg";
 const bg3 = "/img/bg3.jpg";
 const bg4 = "/img/bg4.jpg";
 
+const assetsImages = [alexImage, sarahImage, mikeImage, priyaImage, bg1, bg2, bg3, bg4];
+const assetsAudio = [backgroundMusic];
+
+usePreloadAssets(assetsImages, assetsAudio);
 
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -78,17 +85,16 @@ const bg4 = "/img/bg4.jpg";
 
   /* ---------------------------- AUDIO CONTROL ---------------------------- */
   useEffect(() => {
-    if (show && userTriggered && audioRef.current) {
-      audioRef.current.volume = 0.4;
-      audioRef.current.play().catch(e => console.log("Audio error:", e));
-    }
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
+  if (show && userTriggered && audioRef.current) {
+    audioRef.current.volume = 0.4;
+
+    // Ensure audio is loaded before playing
+    audioRef.current.oncanplaythrough = () => {
+      audioRef.current.play().catch(e => console.log("Audio play error:", e));
     };
-  }, [show, userTriggered]);
+    audioRef.current.load();
+  }
+}, [show, userTriggered]);
 
   /* ---------------------------- STATE RESET ---------------------------- */
   useEffect(() => {
