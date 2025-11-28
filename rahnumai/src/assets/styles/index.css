@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import '@radix-ui/themes/styles.css';
 
-/* Enhanced theme variables */
 :root {
   --color-student: #f39c12;
   --color-faculty: #8311f2;
@@ -19,7 +18,6 @@
   --color-border: 51 65 85;
 }
 
-/* Base styles with proper theme support */
 html {
   scroll-behavior: smooth;
 }
@@ -28,12 +26,13 @@ body {
   background-color: rgb(var(--color-background));
   color: rgb(var(--color-foreground));
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
 }
 
-/* Enhanced scrollbar theming */
+/* Enhanced scrollbar styling - invisible but functional */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0px;
+  height: 0px;
 }
 
 ::-webkit-scrollbar-track {
@@ -41,33 +40,32 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.4);
-  border-radius: 9999px;
-  transition: background-color 0.2s;
+  background-color: transparent;
+  border-radius: 0px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 100, 100, 0.7);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgba(200, 200, 200, 0.4);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(200, 200, 200, 0.7);
-}
-
+/* For Firefox */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
 }
 
-.dark * {
-  scrollbar-color: rgba(200, 200, 200, 0.4) transparent;
+/* Ensure smooth scrolling for all scrollable elements */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Enhanced animations */
+.sidebar-content {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Rest of your existing styles remain the same */
 @keyframes fadeUp {
   0% { opacity: 0; transform: translateY(16px); }
   100% { opacity: 1; transform: translateY(0); }
@@ -82,7 +80,6 @@ body {
 .animation-delay-400 { animation-delay: 0.4s; }
 .animation-delay-500 { animation-delay: 0.5s; }
 
-/* Role-specific color utilities */
 .role-student {
   --role-color: var(--color-student);
 }
@@ -95,7 +92,6 @@ body {
   --role-color: var(--color-admin);
 }
 
-/* Sidebar improvements */
 .sidebar-collapsed .nav-icon {
   width: 1.5rem !important;
   height: 1.5rem !important;
@@ -114,41 +110,6 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Smooth scrolling containers */
-.sidebar-content {
-  scroll-behavior: smooth;
-}
-
-.smooth-scroll {
-  scroll-behavior: smooth;
-}
-
-.sidebar-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 100, 100, 0.3);
-  border-radius: 9999px;
-}
-
-.sidebar-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 100, 100, 0.5);
-}
-
-.dark .sidebar-content::-webkit-scrollbar-thumb {
-  background-color: rgba(200, 200, 200, 0.3);
-}
-
-.dark .sidebar-content::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(200, 200, 200, 0.5);
-}
-
-/* Notification animations */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -164,7 +125,6 @@ body {
   animation: slideIn 0.2s ease-out;
 }
 
-/* WebGL and motion improvements */
 .webgl-container {
   transform: translateZ(0);
   will-change: transform;
@@ -174,7 +134,42 @@ body {
   transform-origin: center;
 }
 
-/* Reduced motion support */
+/* New cinematic transition styles */
+.cinematic-transition {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.text-reveal {
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.avengers-text {
+  font-family: 'Arial Black', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.particle {
+  position: absolute;
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -184,3 +179,100 @@ body {
 }
 
 
+/* TransitionOverlay.css */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes typewriter {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #3b82f6;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.typewriter {
+  overflow: hidden;
+  border-right: 3px solid #3b82f6;
+  white-space: nowrap;
+  margin: 0 auto;
+  animation: typewriter 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+/* Ensure smooth transitions */
+* {
+  box-sizing: border-box;
+}
+
+.transition-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

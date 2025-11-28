@@ -24,12 +24,7 @@ export default function LoginWrapper({ onLoginSuccess }) {
     setCurrentView('transition');
     
     // After transition, switch to enhanced login
-    setTimeout(() => {
-      localStorage.setItem("hasVisitedBefore", "true");
-      setIsFirstTime(false);
-      setCurrentView('enhanced');
-      setShowTransition(false);
-    }, 1500);
+    
   };
 
   const resetExperience = () => {

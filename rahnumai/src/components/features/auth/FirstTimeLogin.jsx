@@ -1,8 +1,7 @@
-// FirstTimeLogin.jsx
-import { useState } from "react";
-import { BookOpen } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TransitionOverlay from "./TransitionOverlay";
+import { motion } from "framer-motion";
 
 const roles = [
   { name: "Admission", cardColor: "#005F9C", buttonColor: "#FFFFFF", buttonTextColor: "#000000", buttonText: "Apply Online" },
@@ -12,13 +11,30 @@ const roles = [
   { name: "Alumni", cardColor: "#009FBC", buttonColor: "#FFFFFF", buttonTextColor: "#000000", buttonText: "Sign In" },
 ];
 
+
 export default function FirstTimeLogin({ onComplete }) {
   const navigate = useNavigate();
   const [cardsFading, setCardsFading] = useState(Array(roles.length).fill(false));
   const [fadeHeaderFooter, setFadeHeaderFooter] = useState(false);
   const [showBreakChains, setShowBreakChains] = useState(false);
   const [isVanishing, setIsVanishing] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  const [hasCompleted, setHasCompleted] = useState(false);
+
+
+  const startTransition = () => {
+   
+  };
+  // Auto-start transition when all cards are gone
+  // useEffect(() => {
+  //   if (showBreakChains && !hasCompleted) {
+  //     // Auto-start the cinematic transition after a short delay
+  //     const timer = setTimeout(() => {
+  //       startCinematicTransition();
+  //     }, 800);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [showBreakChains, hasCompleted]);
 
   const handleCardHover = (index) => {
     if (isVanishing) return;
@@ -30,19 +46,34 @@ export default function FirstTimeLogin({ onComplete }) {
     if (newFade.every((fade) => fade)) {
       setIsVanishing(true);
       setTimeout(() => setFadeHeaderFooter(true), 300);
-      setTimeout(() => setShowBreakChains(true), 1200);
+      setTimeout(() => setShowBreakChains(true), 800);
     }
   };
 
-const handleBookClick = () => {
-  setShowOverlay(true);
-  setTimeout(() => {
-    navigate("/landing");
-  }, 800);
+ const startCinematicTransition = () => {
+  setShowBreakChains(false); // <— IMPORTANT
+  setShowTransition(true);
+  setHasCompleted(true);
 };
+
+  const handleTransitionComplete = () => {
+    console.log("Transition complete - navigating to landing");
+    setShowTransition(false);
+    
+    // Use a short timeout to ensure state updates are processed
+    setTimeout(() => {
+      if (onComplete) {
+        onComplete();
+      } else {
+        // Force navigation to landing page
+        navigate("/landing", { replace: true });
+      }
+    }, 100);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col bg-gray-100 transition-all duration-1000 ${
-      fadeHeaderFooter ? "bg-gray-900" : ""
+      fadeHeaderFooter ? "" : ""
     }`}>
       {/* Header */}
       <header className={`bg-gray-700 h-12 text-white text-2xl py-4 shadow-md flex justify-between items-center px-6 transition-all duration-1000 ${
@@ -54,16 +85,76 @@ const handleBookClick = () => {
       {/* Main */}
       <main className="flex-1 flex flex-col items-center justify-center py-8 relative z-10">
         {showBreakChains ? (
-          <div className="flex flex-col items-center space-y-6">
-            <button className="text-6xl font-bold text-white bg-transparent border-4 border-white px-12 py-8 rounded-lg cursor-not-allowed select-none transition-all duration-500">
-              Ready to break the chains?
-            </button>
-            <BookOpen
-              size={80}
-              className="cursor-pointer text-white hover:text-cyan-300 transition-all duration-300 transform hover:scale-110 z-20 relative"
-              onClick={handleBookClick}
-            />
-          </div>
+          <div className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-white">
+
+    {/* Soft floating grayscale orbs */}
+    {Array.from({ length: 10 }).map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute w-24 h-24 rounded-full bg-black/5 blur-2xl"
+        style={{
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+        }}
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{
+          opacity: 0.25,
+          scale: 1,
+          y: [0, -25, 0],
+          x: [0, 15, 0],
+        }}
+        transition={{
+          duration: 5 + Math.random() * 3,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    ))}
+
+    {/* Center card */}
+    <motion.div
+      className="backdrop-blur-xl bg-white/70 border border-gray-300 shadow-lg rounded-2xl p-10 flex flex-col items-center z-20"
+      initial={{ scale: 0.85, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
+      {/* Text */}
+      <motion.h1
+        className="text-3xl font-semibold text-gray-800"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      >
+        Are you ready to...
+      </motion.h1>
+
+      {/* Minimal Black Progress Bar */}
+      <motion.div
+        className="w-72 h-2 bg-gray-300 rounded-full mt-6 overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.8 }}
+      >
+        <motion.div
+          className="h-full bg-black"
+          initial={{ width: "0%" }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 3, ease: "easeInOut" }}
+        />
+      </motion.div>
+
+      {/* Minimal Black Button */}
+      <motion.button
+        onClick={startCinematicTransition}
+        className="px-10 py-3 mt-10 bg-black text-white text-lg font-semibold rounded-lg shadow hover:scale-105 transition-all"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 3, duration: 0.8 }}
+      >
+        Break Free
+      </motion.button>
+    </motion.div>
+  </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-y-6 gap-x-20 w-full max-w-4xl">
             {roles.map((role, index) => (
@@ -107,18 +198,22 @@ const handleBookClick = () => {
         )}
       </main>
 
-     
       {/* Footer */}
       <footer className={`text-center py-4 bg-gray-200 text-gray-700 transition-all duration-1000 ${
         fadeHeaderFooter ? "opacity-0 translate-y-4 bg-gray-800" : "opacity-100 translate-y-0"
       } z-10 relative`}>
-        2025 © <a href="https://baRhria.edu.pk/" target="_blank" rel="noreferrer" className="underline">Bahria University</a>
+        2025 © <a href="https://bahria.edu.pk/" target="_blank" rel="noreferrer" className="underline">Bahria University</a>
       </footer>
 
-{showOverlay && (
-  <TransitionOverlay 
-    show={showOverlay} 
-    onComplete={onComplete}
+      {/* Cinematic Transition Overlay */}
+      {showTransition && (
+  <TransitionOverlay
+    show={showTransition}
+    userTriggered={true}
+    onComplete={() => {
+      setShowTransition(false);
+      navigate("/landing", { replace: true });
+    }}
   />
 )}
     </div>

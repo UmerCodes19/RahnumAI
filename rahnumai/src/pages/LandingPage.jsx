@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-import Aurora from "@/components/visual/Aurora";
 import ThemeToggle from '@/components/common/theme/ThemeToggle';
+import ColorBends from '@/components/visual/ColorBends'; // Make sure path is correct
+
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import {
   Rocket,
-  Sparkles as SparklesIcon,
+  Brain,
   Users,
   BookOpen,
   Award,
@@ -19,58 +20,116 @@ import {
   MessageCircle,
   BarChart3,
   ArrowRight,
+  Zap,
+  Shield,
+  Sparkles,
+  Target,
+  Lightbulb,
+  Network,
+  Code
 } from "lucide-react";
 
 import { Button } from "@/components/common/ui/buttons/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/common/ui/cards/landingcard";
-import { BackgroundBeams } from "@/components/common/ui/effects/background-beams";
-import { Sparkles } from "@/components/common/ui/effects/sparkles";
-import { TextGenerateEffect } from "@/components/common/ui/effects/text-generate-effect";
-import { WavyBackground } from "@/components/common/ui/effects/wavy-background";
-import { NumberTicker } from "@/components/common/ui/utils/NumberTicker";
-import { TypewriterEffect } from "@/components/common/ui/effects/TypewriterEffect";
 
+// Color scheme matching the transition overlay
 const COLOR_SCHEME = {
-  primary: "#f97316",
-  secondary: "#eab308",
-  accent: "#8311f2",
+  primary: "#f97316",    // Orange
+  secondary: "#eab308",  // Amber
+  accent: "#8311f2",     // Purple
+  dark: "#0f172a",       // Slate-900
+  light: "#f8fafc",      // Slate-50
 };
 
-const fadeInUp = {
-  initial: { y: 40, opacity: 0 },
-  animate: { y: 0, opacity: 1, transition: { duration: 0.8 } },
+const COLOR_BENDS = ["#f97316", "#eab308", "#8311f2", "#3b82f6", "#10b981"];
+
+const CinematicBackground = ({ darkMode }) => {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Animated gradient overlays */}
+      <motion.div
+        className={`absolute inset-0 ${
+          darkMode 
+            ? "bg-gradient-to-br from-gray-900 via-black to-gray-800" 
+            : "bg-gradient-to-br from-blue-50 via-white to-purple-50"
+        }`}
+        animate={{
+          opacity: [0.3, 0.5, 0.3],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      
+      {/* Soft animated sweep */}
+      <div className="absolute inset-0 opacity-10">
+        <motion.div
+          className={`w-full h-full ${
+            darkMode 
+              ? "bg-gradient-to-r from-transparent via-blue-500 to-transparent" 
+              : "bg-gradient-to-r from-transparent via-orange-400 to-transparent"
+          }`}
+          animate={{
+            x: ["-100%", "100%"],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      </div>
+
+      {/* Subtle grid */}
+      <div className={`absolute inset-0 ${darkMode ? "opacity-[0.02]" : "opacity-[0.03]"}`}>
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 1px, transparent 1px),
+            linear-gradient(90deg, ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'} 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px',
+        }} />
+      </div>
+    </div>
+  );
 };
-const scaleIn = {
-  initial: { scale: 0.8, opacity: 0 },
-  animate: { scale: 1, opacity: 1, transition: { duration: 0.6 } },
+
+const TextGlow = ({ children, className = "", darkMode = true }) => {
+  return (
+    <div className={`relative ${className}`}>
+      <div
+        className="absolute inset-0 blur-lg opacity-50"
+        style={{
+          background: "inherit",
+          backgroundClip: "text",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+        }}
+      >
+        {children}
+      </div>
+      {children}
+    </div>
+  );
 };
-const staggerContainer = { animate: { transition: { staggerChildren: 0.1 } } };
 
 export default function LandingPage() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === "dark";
-  const [showBG, setShowBG] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
-  const [navState, setNavState] = useState("docked"); // "docked" | "scrolled" | "hidden"
+  const [navState, setNavState] = useState("docked");
   const [lastScrollY, setLastScrollY] = useState(0);
   const { scrollY } = useScroll();
 
   const heroRef = useRef(null);
   const statsRef = useRef(null);
   const featuresRef = useRef(null);
-  const pricingRef = useRef(null);
   const ctaRef = useRef(null);
 
   const heroInView = useInView(heroRef, { once: true });
   const statsInView = useInView(statsRef, { once: true, margin: "-100px" });
   const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
-  const pricingInView = useInView(pricingRef, { once: true, margin: "-100px" });
   const ctaInView = useInView(ctaRef, { once: true });
 
   // Navbar scroll behavior
@@ -89,10 +148,9 @@ export default function LandingPage() {
     setLastScrollY(latest);
   });
 
-  // Update active section
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ["home", "stats", "features", "pricing", "cta"];
+      const sections = ["home", "stats", "features", "cta"];
       const current = sections.find((section) => {
         const el = document.getElementById(section);
         if (el) {
@@ -107,126 +165,115 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => setShowBG(true), 300);
-  }, []);
-
-  const typingWords = [
-    { text: "AI-Powered", className: "text-orange-500" },
-    { text: "Personalized", className: "text-amber-500" },
-    { text: "Interactive", className: "text-purple-500" },
-    { text: "Revolutionary", className: "text-red-500" },
-  ];
-
-  // Navbar variants for different states
   const navVariants = {
     docked: {
       y: 0,
-      width: "100%",
-      borderRadius: 0,
       backdropFilter: "blur(16px)",
       backgroundColor: darkMode ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)",
-      transition: { type: "spring", stiffness: 300, damping: 30 }
+      borderColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
     },
     scrolled: {
-      y: 20,
-      width: "90%",
-      borderRadius: 20,
+      y: 0,
       backdropFilter: "blur(20px)",
-      backgroundColor: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.7)",
-      transition: { type: "spring", stiffness: 400, damping: 35 }
+      backgroundColor: darkMode ? "rgba(15, 23, 42, 0.95)" : "rgba(255, 255, 255, 0.95)",
+      borderColor: darkMode ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
     }
   };
 
-  const logoVariants = {
-    docked: { scale: 1 },
-    scrolled: { scale: 0.9 }
+  // Text colors for light/dark mode
+  const textColors = {
+    primary: darkMode ? "text-white" : "text-gray-900",
+    secondary: darkMode ? "text-blue-300" : "text-blue-600",
+    muted: darkMode ? "text-slate-400" : "text-gray-600",
   };
 
-  const navItemsVariants = {
-    docked: { opacity: 1, x: 0 },
-    scrolled: { opacity: 1, x: 0 }
+  const borderColors = {
+    light: darkMode ? "border-slate-700/30" : "border-gray-200/50",
+    medium: darkMode ? "border-slate-600/50" : "border-gray-300",
   };
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-500 overflow-hidden ${
-        darkMode ? "dark bg-gray-900" : "bg-gray-50"
-      }`}
-    >
-      {/* Background Effects */}
-      <div
-        className={`fixed inset-0 transition-opacity duration-1500 ${
-          showBG ? "opacity-100" : "opacity-0"
-        }`}
-      >
-        <Aurora
-          colorStops={[COLOR_SCHEME.primary, COLOR_SCHEME.secondary, COLOR_SCHEME.accent]}
-          blend={0.8}
-          amplitude={1.2}
-          speed={0.3}
+    <div className={`min-h-screen transition-colors duration-500 overflow-hidden ${
+      darkMode ? "dark bg-gray-900" : "bg-white"
+    }`}>
+      
+      {/* Cinematic Background */}
+      <div className="fixed inset-0">
+        <ColorBends
+          colors={COLOR_BENDS}
+          speed={0.2}
+          rotation={45}
+          scale={1.2}
+          frequency={1.5}
+          warpStrength={1.2}
+          mouseInfluence={0.5}
+          parallax={0.3}
+          noise={0.05}
+          transparent={true}
         />
-        <BackgroundBeams />
       </div>
 
-      {/* Navigation */}
+      {/* Navigation - Minimal and Professional */}
       <motion.nav
-        className={`fixed z-50 left-1/2 transform -translate-x-1/2 border ${
-          darkMode ? "border-slate-700/50" : "border-slate-200/50"
-        } shadow-2xl`}
+        className={`fixed top-0 left-0 right-0 z-50 border-b ${
+          darkMode ? "border-slate-700/50" : "border-gray-200/50"
+        }`}
         variants={navVariants}
         initial="docked"
         animate={navState}
-        style={{ 
-          top: 0,
-          maxWidth: "1400px"
-        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="px-6 py-3">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <motion.div
               className="flex items-center space-x-3"
-              variants={logoVariants}
+              whileHover={{ scale: 1.05 }}
             >
               <motion.div
-                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg"
+                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center"
                 whileHover={{ scale: 1.1, rotate: 5 }}
-                transition={{ type: "spring", stiffness: 300 }}
               >
-                <Rocket className="w-5 h-5 text-white" />
+                <Brain className="w-5 h-5 text-white" />
               </motion.div>
-              <Sparkles>
-                <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
-                  RahnumAI
-                </span>
-              </Sparkles>
+              <motion.span
+                className={`text-2xl font-bold uppercase tracking-tight ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+                style={{
+                  textShadow: darkMode 
+                    ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
+                    : "2px 2px 15px rgba(0,0,0,0.1)",
+                  fontFamily: "'Inter','Arial',sans-serif",
+                }}
+              >
+                RahnumAI
+              </motion.span>
             </motion.div>
 
             {/* Navigation Items */}
             <motion.div
               className="hidden md:flex items-center space-x-8"
-              variants={navItemsVariants}
             >
-              {["home", "stats", "features", "pricing", "cta"].map((id) => (
+              {["home", "stats", "features", "cta"].map((id) => (
                 <motion.a
                   key={id}
                   href={`#${id}`}
-                  className={`font-semibold relative px-3 py-2 rounded-lg transition-colors ${
+                  className={`font-semibold uppercase tracking-wide relative px-3 py-2 transition-colors ${
                     activeSection === id
-                      ? "text-orange-500 bg-orange-500/10"
+                      ? "text-orange-500"
                       : darkMode
-                      ? "text-slate-300 hover:text-orange-400 hover:bg-slate-800/50"
-                      : "text-slate-700 hover:text-orange-600 hover:bg-slate-100/50"
+                      ? "text-slate-300 hover:text-orange-400"
+                      : "text-gray-700 hover:text-orange-600"
                   }`}
-                  whileHover={{ scale: 1.05, y: -1 }}
+                  whileHover={{ y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {id.charAt(0).toUpperCase() + id.slice(1)}
                   {activeSection === id && (
                     <motion.div
-                      className="absolute inset-0 border border-orange-500/30 rounded-lg"
-                      layoutId="activeNavBackground"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-orange-500"
+                      layoutId="activeNavUnderline"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -234,26 +281,19 @@ export default function LandingPage() {
               ))}
             </motion.div>
 
-            {/* Right Side - Theme Toggle and CTA */}
+            {/* Right Side */}
             <motion.div
               className="flex items-center space-x-4"
-              variants={navItemsVariants}
             >
               <ThemeToggle />
               <Link to="/login">
                 <Button 
                   size="lg" 
-                  className="relative overflow-hidden group bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <span className="relative z-10">Get Started</span>
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-600"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
+                  Get Started
                 </Button>
               </Link>
             </motion.div>
@@ -264,70 +304,103 @@ export default function LandingPage() {
       {/* Add padding to account for navbar */}
       <div className="pt-20"></div>
 
-      {/* Hero Section */}
+      {/* Hero Section - Cinematic Style */}
       <section id="home" ref={heroRef} className="relative min-h-screen flex items-center justify-center">
-        <WavyBackground
-          colors={[COLOR_SCHEME.primary, COLOR_SCHEME.secondary, COLOR_SCHEME.accent]}
-          waveOpacity={0.3}
-          blur={8}
-          speed="fast"
-        >
+        <CinematicBackground darkMode={darkMode} />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div
-            className="text-center max-w-6xl mx-auto px-4 relative z-10"
             initial={{ opacity: 0, y: 30 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1 }}
+            transition={{ duration: 1.2 }}
           >
-            <TextGenerateEffect
-              words="Welcome to the Future of Education"
-              className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-tight"
-            />
-            <TypewriterEffect
-              words={typingWords}
-              className="text-2xl md:text-3xl font-bold mb-4"
-              cursorClassName="bg-orange-500"
-            />
+            {/* Main Title */}
+            <TextGlow darkMode={darkMode}>
+              <motion.h1
+                className={`text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight mb-8 leading-tight ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+                style={{
+                  fontFamily: "'Inter','Arial',sans-serif",
+                }}
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                WELCOME TO
+                <br />
+                <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+                  RAHNUM AI
+                </span>
+              </motion.h1>
+            </TextGlow>
+
+            {/* Subtitle */}
             <motion.p
-              className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-white/90"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.5 }}
+              className={`text-xl md:text-2xl uppercase tracking-wide font-light mb-12 max-w-3xl mx-auto ${
+                darkMode ? "text-blue-300" : "text-blue-600"
+              }`}
+              style={{
+                textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
+                fontFamily: "'Inter','Arial',sans-serif",
+              }}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.3 }}
             >
-              Revolutionize learning with AI-powered personalized education, intelligent analytics, and seamless collaboration in one epic platform.
+              Built for Educators. Designed with purpose. Powered by intelligence.
             </motion.p>
 
+            {/* CTA Buttons */}
             <motion.div
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
             >
-              <motion.div variants={fadeInUp}>
-                <Link to="/login">
-                  <Button size="xl" variant="gradient" className="group">
-                    <span>Start Learning Free</span>
-                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </motion.div>
-              <motion.div variants={fadeInUp}>
-                <Button size="xl" variant="neon" className="group">
-                  <SparklesIcon className="mr-2" /> Watch Demo
+              <Link to="/login">
+                <Button 
+                  size="xl" 
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span>Start Learning Free</span>
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-              </motion.div>
+              </Link>
+              <Button 
+                size="xl" 
+                variant="outline"
+                className={`${
+                  darkMode 
+                    ? "border-white/30 text-white hover:bg-white/10" 
+                    : "border-gray-700 text-gray-700 hover:bg-gray-100"
+                } font-semibold uppercase tracking-wide`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Zap className="mr-2" />
+                Watch Demo
+              </Button>
             </motion.div>
           </motion.div>
-        </WavyBackground>
+        </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Stats Section - Clean and Professional */}
       <section id="stats" ref={statsRef} className="relative py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="grid grid-cols-2 md:grid-cols-4 gap-8"
-            variants={staggerContainer}
             initial="initial"
             animate={statsInView ? "animate" : "initial"}
+            variants={{
+              animate: {
+                transition: {
+                  staggerChildren: 0.15
+                }
+              }
+            }}
           >
             {[
               { icon: Users, number: 100000, suffix: "+", label: "Active Learners" },
@@ -335,192 +408,310 @@ export default function LandingPage() {
               { icon: Award, number: 99, suffix: "%", label: "Success Rate" },
               { icon: Globe, number: 150, suffix: "+", label: "Countries" },
             ].map((stat, index) => (
-              <motion.div key={index} variants={fadeInUp} className="text-center group">
+              <motion.div
+                key={index}
+                className="text-center group"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, type: "spring" }}
+              >
                 <motion.div
-                  className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300"
+                  className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
                   <stat.icon className="w-10 h-10 text-white" />
                 </motion.div>
-                <div className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-orange-400 to-amber-400 bg-clip-text text-transparent">
-                  <NumberTicker value={stat.number} />
-                  {stat.suffix}
+                <div 
+                  className={`text-4xl md:text-5xl font-black mb-2 ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
+                  style={{
+                    textShadow: darkMode 
+                      ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
+                      : "2px 2px 15px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  {stat.number}{stat.suffix}
                 </div>
-                <p className="text-slate-300 font-semibold">{stat.label}</p>
+                <p className={`${
+                  darkMode ? "text-blue-300" : "text-blue-600"
+                } uppercase tracking-wide font-light`}>
+                  {stat.label}
+                </p>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - Professional Layout */}
       <section id="features" ref={featuresRef} className="relative py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div className="text-center mb-20" initial={{ opacity: 0, y: 30 }} animate={featuresInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.8 }}>
-            <Sparkles>
-              <h2 className="text-5xl md:text-6xl font-black mb-6">
-                <span className="bg-gradient-to-r from-orange-500 via-amber-500 to-red-500 bg-clip-text text-transparent">
-                  Everything You Need
-                </span>
+          {/* Section Header */}
+          <motion.div
+            className="text-center mb-20"
+            initial={{ opacity: 0, y: 30 }}
+            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8 }}
+          >
+            <TextGlow darkMode={darkMode}>
+              <h2 
+                className={`text-5xl md:text-6xl font-black uppercase tracking-tight mb-6 ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+                style={{
+                  textShadow: darkMode 
+                    ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
+                    : "2px 2px 15px rgba(0,0,0,0.1)",
+                  fontFamily: "'Inter','Arial',sans-serif",
+                }}
+              >
+                EVERYTHING YOU NEED
               </h2>
-            </Sparkles>
-            <p className="text-xl md:text-2xl max-w-3xl mx-auto text-slate-600 dark:text-slate-300">
+            </TextGlow>
+            <p 
+              className={`text-xl md:text-2xl uppercase tracking-wide font-light max-w-3xl mx-auto ${
+                darkMode ? "text-blue-300" : "text-blue-600"
+              }`}
+              style={{
+                textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
+              }}
+            >
               Packed with cutting-edge technology to transform your learning experience
             </p>
           </motion.div>
 
-          <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" variants={staggerContainer} initial="initial" animate={featuresInView ? "animate" : "initial"}>
+          {/* Features Grid */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            variants={{
+              animate: {
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+            initial="initial"
+            animate={featuresInView ? "animate" : "initial"}
+          >
             {[
               {
                 icon: Cpu,
                 title: "Neural AI Engine",
-                description: "Adaptive AI for real-time personalized learning.",
-                gradient: "from-purple-500 to-pink-500",
-                features: ["Real-time adaptation", "Personalized paths", "Smart recommendations"],
+                description: "Adaptive AI for real-time personalized learning paths and intelligent recommendations.",
+                color: "#f59e0b"
               },
               {
                 icon: Database,
                 title: "Smart Analytics",
-                description: "Predictive performance insights.",
-                gradient: "from-blue-500 to-cyan-500",
-                features: ["Progress tracking", "Performance predictions", "Detailed reports"],
+                description: "Predictive performance insights with detailed progress tracking and reporting.",
+                color: "#ef4444"
               },
               {
                 icon: Cloud,
                 title: "Cloud Native",
-                description: "Access anywhere, seamless sync.",
-                gradient: "from-green-500 to-emerald-500",
-                features: ["Cross-device sync", "Offline access", "Auto backups"],
+                description: "Seamless synchronization across all devices with enterprise-grade reliability.",
+                color: "#8b5cf6"
               },
               {
                 icon: Server,
                 title: "Enterprise Grade",
-                description: "Military-grade security & 99.9% uptime.",
-                gradient: "from-red-500 to-orange-500",
-                features: ["Bank-level security", "High availability", "SLA guarantee"],
+                description: "Military-grade security with 99.9% uptime guarantee and SLA protection.",
+                color: "#10b981"
               },
               {
                 icon: MessageCircle,
                 title: "Live Collaboration",
-                description: "Real-time collaboration tools.",
-                gradient: "from-indigo-500 to-purple-500",
-                features: ["Video conferencing", "Shared workspace", "Real-time editing"],
+                description: "Real-time collaboration tools for interactive learning and team projects.",
+                color: "#3b82f6"
               },
               {
                 icon: BarChart3,
                 title: "Progress Wizard",
-                description: "AI-powered recommendations.",
-                gradient: "from-yellow-500 to-amber-500",
-                features: ["Goal setting", "Milestone tracking", "Achievement system"],
+                description: "AI-powered recommendations with goal setting and achievement tracking.",
+                color: "#f97316"
               },
             ].map((feature, index) => (
-              <motion.div key={index} variants={fadeInUp} whileHover={{ scale: 1.05, y: -10 }} transition={{ type: "spring", stiffness: 300 }}>
-                <Card className="h-full backdrop-blur-sm border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 relative overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                  <CardHeader className="relative z-10">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                      <feature.icon className="w-7 h-7 text-white" />
-                    </div>
-                    <CardTitle className="text-2xl bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                      {feature.title}
-                    </CardTitle>
-                    <CardDescription className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">{feature.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <ul className="space-y-2">
-                      {feature.features.map((item, idx) => (
-                        <li key={idx} className="flex items-center space-x-3 text-sm">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="text-slate-700 dark:text-slate-300">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-      {/* Pricing Section */}
-      <section id="pricing" ref={pricingRef} className="relative py-32 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div className="text-center mb-20" initial={{ opacity: 0, y: 30 }} animate={pricingInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.8 }}>
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", delay: 0.2 }} className="inline-flex items-center px-4 py-2 rounded-full bg-orange-500/20 backdrop-blur-sm mb-6">
-              <SparklesIcon className="w-4 h-4 mr-2 text-orange-500" /> Plans for Everyone
-            </motion.div>
-            <h2 className="text-5xl md:text-6xl font-black mb-6 bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
-              Choose Your Path
-            </h2>
-            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-              Flexible plans for individuals, teams, and enterprises.
-            </p>
-          </motion.div>
-
-          <motion.div className="grid grid-cols-1 md:grid-cols-3 gap-8" variants={staggerContainer} initial="initial" animate={pricingInView ? "animate" : "initial"}>
-            {[
-              { title: "Starter", price: "$0", features: ["Access to courses", "Community support"], gradient: "from-orange-400 to-amber-400" },
-              { title: "Pro", price: "$49/mo", features: ["Everything in Starter", "AI Learning Assistant", "Analytics Dashboard"], gradient: "from-purple-500 to-pink-500" },
-              { title: "Enterprise", price: "$199/mo", features: ["Everything in Pro", "Dedicated Support", "Custom Solutions"], gradient: "from-blue-500 to-cyan-500" },
-            ].map((plan, idx) => (
-              <motion.div key={idx} variants={fadeInUp} whileHover={{ scale: 1.05, y: -5 }}>
-                <Card className="backdrop-blur-sm border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 relative overflow-hidden">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-                  <CardHeader className="relative z-10 text-center">
-                    <CardTitle className="text-3xl font-black">{plan.title}</CardTitle>
-                    <CardDescription className="text-2xl mt-2">{plan.price}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <ul className="space-y-2 mb-6">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-center space-x-3 text-slate-700 dark:text-slate-300">
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button size="lg" className="w-full">Choose Plan</Button>
-                  </CardContent>
-                </Card>
+              <motion.div
+                key={index}
+                className={`backdrop-blur-sm border rounded-xl p-8 hover:border-orange-400/50 transition-all duration-300 ${
+                  darkMode 
+                    ? "bg-gradient-to-br from-gray-900/50 to-black/50 border-slate-700/30" 
+                    : "bg-white/80 border-gray-200/50 shadow-lg"
+                }`}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+              >
+                <div 
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                  style={{ backgroundColor: feature.color }}
+                >
+                  <feature.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 
+                  className={`text-2xl font-bold uppercase tracking-tight mb-4 ${
+                    darkMode ? "text-white" : "text-gray-900"
+                  }`}
+                  style={{
+                    textShadow: darkMode ? "2px 2px 15px rgba(0,0,0,0.8)" : "none",
+                    fontFamily: "'Inter','Arial',sans-serif",
+                  }}
+                >
+                  {feature.title}
+                </h3>
+                <p className={`leading-relaxed font-light ${
+                  darkMode ? "text-blue-300" : "text-gray-600"
+                }`}>
+                  {feature.description}
+                </p>
+                <div className={`mt-6 pt-6 border-t ${
+                  darkMode ? "border-slate-700/30" : "border-gray-200"
+                }`}>
+                  <div className="flex items-center space-x-3 text-sm">
+                    <div 
+                      className="w-3 h-3 rounded-full animate-pulse"
+                      style={{ backgroundColor: feature.color }}
+                    />
+                    <span className={`uppercase tracking-wide ${
+                      darkMode ? "text-slate-400" : "text-gray-500"
+                    }`}>
+                      ACTIVE FEATURE
+                    </span>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="cta" ref={ctaRef} className="relative py-32 bg-gradient-to-r from-orange-500 to-amber-400 text-black">
-        <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.h2 className="text-5xl md:text-6xl font-black mb-6" initial={{ opacity:0, y:30 }} animate={ctaInView ? {opacity:1, y:0} : {}}>
-            Ready to Transform Learning?
-          </motion.h2>
-          <motion.p className="text-xl md:text-2xl mb-10" initial={{ opacity:0, y:20 }} animate={ctaInView ? {opacity:1, y:0} : {}}>
-            Join thousands of learners worldwide and unlock your potential with AI-powered education.
-          </motion.p>
-          <motion.div className="flex justify-center gap-6" initial={{ opacity:0 }} animate={ctaInView ? {opacity:1} : {}}>
-            <Link to="/login">
-              <Button size="xl" variant="white">
-                Get Started
+      {/* CTA Section - Cinematic */}
+      <section id="cta" ref={ctaRef} className="relative py-32">
+        <CinematicBackground darkMode={darkMode} />
+        <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={ctaInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1 }}
+          >
+            <TextGlow darkMode={darkMode}>
+              <motion.h2
+                className={`text-5xl md:text-6xl font-black uppercase tracking-tight mb-8 ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+                style={{
+                  textShadow: darkMode 
+                    ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
+                    : "2px 2px 15px rgba(0,0,0,0.1)",
+                  fontFamily: "'Inter','Arial',sans-serif",
+                }}
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                READY TO TRANSFORM
+                <br />
+                <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+                  LEARNING?
+                </span>
+              </motion.h2>
+            </TextGlow>
+
+            <motion.p
+              className={`text-xl md:text-2xl uppercase tracking-wide font-light mb-12 max-w-3xl mx-auto ${
+                darkMode ? "text-blue-300" : "text-blue-600"
+              }`}
+              style={{
+                textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
+              }}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.9, delay: 0.3 }}
+            >
+              Join thousands of learners worldwide and unlock your potential with AI-powered education.
+            </motion.p>
+
+            <motion.div
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              <Link to="/login">
+                <Button 
+                  size="xl" 
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <span>Get Started Free</span>
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Button 
+                size="xl" 
+                variant="outline"
+                className={`${
+                  darkMode 
+                    ? "border-white/30 text-white hover:bg-white/10" 
+                    : "border-gray-700 text-gray-700 hover:bg-gray-100"
+                } font-semibold uppercase tracking-wide`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Learn More
               </Button>
-            </Link>
-            <Button size="xl" variant="outline">Learn More</Button>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 bg-slate-900 text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
-            <Sparkles>
-              <span className="text-xl font-bold text-white">RahnumAI</span>
-            </Sparkles>
-            <p className="text-sm mt-2">© 2025 RahnumAI. All rights reserved.</p>
+      {/* Footer - Minimal */}
+      <footer className={`relative py-12 border-t ${
+        darkMode ? "border-slate-700/30" : "border-gray-200"
+      }`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
+                <Brain className="w-4 h-4 text-white" />
+              </div>
+              <span 
+                className={`text-xl font-bold uppercase tracking-tight ${
+                  darkMode ? "text-white" : "text-gray-900"
+                }`}
+                style={{
+                  textShadow: darkMode ? "2px 2px 15px rgba(0,0,0,0.8)" : "none",
+                  fontFamily: "'Inter','Arial',sans-serif",
+                }}
+              >
+                RahnumAI
+              </span>
+            </div>
+            <div className="flex gap-6">
+              {["Privacy", "Terms", "Contact"].map((item) => (
+                <motion.a
+                  key={item}
+                  href="#"
+                  className={`hover:text-orange-500 transition-colors uppercase tracking-wide text-sm font-light ${
+                    darkMode ? "text-slate-400" : "text-gray-600"
+                  }`}
+                  whileHover={{ y: -2 }}
+                >
+                  {item}
+                </motion.a>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-6">
-            <Link to="#" className="hover:text-white transition">Privacy</Link>
-            <Link to="#" className="hover:text-white transition">Terms</Link>
-            <Link to="#" className="hover:text-white transition">Contact</Link>
+          <div className={`mt-8 pt-8 border-t ${
+            darkMode ? "border-slate-700/30" : "border-gray-200"
+          } text-center`}>
+            <p className={`uppercase tracking-wide text-sm font-light ${
+              darkMode ? "text-slate-500" : "text-gray-500"
+            }`}>
+              © 2025 RahnumAI. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
