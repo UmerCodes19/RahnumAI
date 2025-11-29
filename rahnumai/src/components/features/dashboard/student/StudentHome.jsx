@@ -11,15 +11,21 @@ export default function StudentHome() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
   
-  // API data hooks
-  const { data: statsData, loading: statsLoading } = useDashboardStats();
-  const { data: assignmentsData, loading: assignmentsLoading } = useAssignments({ 
-    status: 'pending',
-    due_soon: true 
-  });
+  // Mock data for demonstration
+  const statsData = {
+    active_courses: 4,
+    courses_in_progress: 3,
+    average_grade: 82,
+    grade_trend: '+2% from last month',
+    ai_sessions: 12
+  };
 
-  // Transform API data to component format
-  const stats = statsData ? [
+  const assignmentsData = [
+    { id: 1, title: 'Math Assignment', due_date: '2024-12-20' },
+    { id: 2, title: 'Physics Lab', due_date: '2024-12-22' }
+  ];
+
+  const stats = [
     { 
       title: "Active Courses", 
       value: statsData.active_courses.toString(), 
@@ -48,10 +54,10 @@ export default function StudentHome() {
       icon: Users, 
       color: "purple" 
     }
-  ] : [];
+  ];
 
   const studentQuickActions = [
-    { icon: Eye, label: 'View Attendance', description: 'Check your attendance record', color: 'blue', path: '/dashboard/attendance' },
+    { icon: Eye, label: 'View Attendance', description: 'Check your attendance record', color: 'blue', path: '/dashboard/student-attendance' },
     { icon: Brain, label: 'Resume AI Session', description: 'Continue with AI tutor', color: 'green', path: '/dashboard/assistant' },
     { icon: Calendar, label: 'Class Schedule', description: 'View upcoming classes', color: 'orange', path: '/dashboard/schedule' },
     { icon: BarChart3, label: 'Recent Grades', description: 'Check your performance', color: 'purple', path: '/dashboard/grades' },
@@ -64,32 +70,16 @@ export default function StudentHome() {
     purple: 'from-purple-500 to-purple-600'
   };
 
-  if (statsLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="mb-8">
-          <Skeleton width="48" height="12" className="mb-2" />
-          <Skeleton width="64" height="6" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} width="full" height="32" className="rounded-xl" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className={`text-3xl font-bold mb-2 ${
+      <div className="mb-4 sm:mb-8">
+        <h1 className={`text-2xl sm:text-3xl font-bold mb-2 ${
           darkMode ? 'text-white' : ''
         }`}>
           Welcome back, Student! 👋
         </h1>
-        <p className={`${
+        <p className={`text-sm sm:text-base ${
           darkMode ? '' : ''
         }`}>
           Here's your learning overview for today.
@@ -97,7 +87,7 @@ export default function StudentHome() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {stats.map((stat, index) => (
           <StatsCard
             key={stat.title}
@@ -106,64 +96,69 @@ export default function StudentHome() {
             subtitle={stat.subtitle}
             icon={stat.icon}
             color={stat.color}
+            animationDelay={index * 100}
           />
         ))}
       </div>
 
       {/* Quick Actions */}
-      <div className={`rounded-2xl p-6 border backdrop-blur-sm ${
+      <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border backdrop-blur-sm ${
         darkMode
           ? 'bg-slate-800/80 border-slate-700'
           : 'bg-white/80 border-slate-200'
       }`}>
-        <h2 className={`text-xl font-semibold mb-4 ${
+        <h2 className={`text-lg sm:text-xl font-semibold mb-3 sm:mb-4 ${
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {studentQuickActions.map((action, index) => (
             <button
               key={action.label}
-              className={`p-4 rounded-xl bg-gradient-to-br ${colorClasses[action.color]} text-white transition-all duration-200 hover:scale-105 group text-left`}
+              className={`p-3 sm:p-4 rounded-lg sm:rounded-xl bg-gradient-to-br ${colorClasses[action.color]} text-white transition-all duration-200 hover:scale-105 group text-left`}
               onClick={() => window.location.href = action.path}
             >
-              <action.icon className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-              <p className="font-semibold mb-1">{action.label}</p>
-              <p className="text-sm opacity-90">{action.description}</p>
+              <action.icon className="w-5 h-5 sm:w-6 sm:h-6 mb-2 group-hover:scale-110 transition-transform" />
+              <p className="font-semibold text-sm sm:text-base mb-1">{action.label}</p>
+              <p className="text-xs sm:text-sm opacity-90 hidden sm:block">{action.description}</p>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Recent Activity */}
         <RecentActivity />
         
         {/* Upcoming Schedule */}
-        <div className={`rounded-2xl p-6 border backdrop-blur-sm ${
+        <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border backdrop-blur-sm ${
           darkMode
             ? 'bg-slate-800/80 border-slate-700'
             : 'bg-white/80 border-slate-200'
         }`}>
-          <h2 className={`text-xl font-semibold mb-4 ${
+          <h2 className={`text-lg sm:text-xl font-semibold mb-3 sm:mb-4 ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
             Upcoming Schedule
           </h2>
-          <div className="space-y-4">
-            {statsData?.upcoming_schedule?.map((schedule, index) => (
+          <div className="space-y-3 sm:space-y-4">
+            {[
+              { subject: 'Mathematics 101', time: '10:00 AM - 11:30 AM', type: 'Lecture' },
+              { subject: 'Computer Science', time: '2:00 PM - 3:30 PM', type: 'Lab' },
+              { subject: 'Physics Fundamentals', time: '4:00 PM - 5:30 PM', type: 'Tutorial' }
+            ].map((schedule, index) => (
               <div key={index} className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
                 darkMode ? 'hover:bg-slate-700' : 'hover:bg-slate-50'
               }`}>
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-500 rounded-full"></div>
                 <div className="flex-1">
-                  <p className={`font-medium ${
+                  <p className={`font-medium text-sm sm:text-base ${
                     darkMode ? 'text-white' : 'text-slate-900'
                   }`}>
                     {schedule.subject}
                   </p>
-                  <p className={`text-sm ${
+                  <p className={`text-xs sm:text-sm ${
                     darkMode ? 'text-slate-400' : 'text-slate-500'
                   }`}>
                     {schedule.time}
@@ -177,11 +172,7 @@ export default function StudentHome() {
                   {schedule.type}
                 </span>
               </div>
-            )) || (
-              <p className={`text-center py-4 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                No upcoming schedule
-              </p>
-            )}
+            ))}
           </div>
         </div>
       </div>

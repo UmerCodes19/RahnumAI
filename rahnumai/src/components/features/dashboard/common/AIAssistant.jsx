@@ -74,33 +74,6 @@ export default function AIAssistant({ roleColor }) {
     } else {
       return "I understand you're asking about: \"" + userMessage + "\". As your AI study assistant, I can provide personalized help based on your courses and learning style. Could you tell me more about what you'd like to learn or which subject you need help with?";
     }
-
-    // // Groq API integration - COMMENTED OUT FOR DESIGN TESTING
-    // /*
-    // try {
-    //   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Authorization': `Bearer ${process.env.REACT_APP_GROQ_API_KEY}`,
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       messages: [{ role: 'user', content: userMessage }],
-    //       model: "llama3-8b-8192",
-    //       temperature: 0.7,
-    //       max_tokens: 1024,
-    //     })
-    //   });
-
-    //   if (!response.ok) throw new Error('API request failed');
-    //   const data = await response.json();
-    //   return data.choices[0]?.message?.content || "I apologize, but I couldn't process your request.";
-
-    // } catch (error) {
-    //   console.error('API Error:', error);
-    //   return "I'm currently experiencing technical difficulties. Please try again later or ask me about your courses, assignments, or study strategies.";
-    // }
-    // */
   };
 
   const sendMessage = async () => {
@@ -169,12 +142,12 @@ export default function AIAssistant({ roleColor }) {
 
   return (
     <>
-      {/* Enhanced FAB Button with Animation */}
+      {/* Enhanced FAB Button with Animation - Mobile Responsive */}
       <AnimatePresence>
         {!open && (
           <motion.button
             onClick={() => setOpen(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-white backdrop-blur-sm border-2 border-white/20 z-50"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-16 sm:h-16 rounded-full shadow-2xl flex items-center justify-center text-white backdrop-blur-sm border-2 border-white/20 z-50"
             style={{ 
               background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
               boxShadow: `0 8px 32px ${accentColor}40`
@@ -194,10 +167,10 @@ export default function AIAssistant({ roleColor }) {
               damping: 25 
             }}
           >
-            <MessageCircle size={26} />
+            <MessageCircle size={20} className="sm:w-6 sm:h-6" />
             {/* Pulsing dot for new message indicator */}
             <motion.div
-              className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"
+              className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full border-2 border-white"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -205,12 +178,12 @@ export default function AIAssistant({ roleColor }) {
         )}
       </AnimatePresence>
 
-      {/* Enhanced Chat Window */}
+      {/* Enhanced Chat Window - Mobile Responsive */}
       <AnimatePresence>
         {open && (
           <motion.div
-            className={`fixed bottom-6 right-6 rounded-2xl shadow-2xl flex flex-col border backdrop-blur-xl z-50 overflow-hidden
-            ${minimized ? 'w-80 h-16' : 'w-96 h-[500px]'}
+            className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 rounded-2xl shadow-2xl flex flex-col border backdrop-blur-xl z-50 overflow-hidden
+            ${minimized ? 'w-72 sm:w-80 h-14 sm:h-16' : 'w-[calc(100vw-2rem)] sm:w-96 h-[400px] sm:h-[500px] max-w-sm sm:max-w-none'}
             ${darkMode 
               ? "bg-slate-900/95 border-slate-700/50 text-white" 
               : "bg-white/95 border-slate-200/50 text-slate-900"
@@ -226,7 +199,7 @@ export default function AIAssistant({ roleColor }) {
           >
             {/* Enhanced Header */}
             <motion.div
-              className="px-4 py-3 text-white flex justify-between items-center cursor-pointer"
+              className="px-3 sm:px-4 py-2 sm:py-3 text-white flex justify-between items-center cursor-pointer"
               style={{ 
                 background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
                 boxShadow: `0 4px 20px ${accentColor}30`
@@ -234,20 +207,20 @@ export default function AIAssistant({ roleColor }) {
               onClick={() => setMinimized(!minimized)}
               whileHover={{ opacity: 0.9 }}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="relative">
-                  <Bot size={20} />
+                  <Bot size={18} className="sm:w-5 sm:h-5" />
                   <motion.div
-                    className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full"
+                    className="absolute -top-1 -right-1 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-400 rounded-full"
                     animate={{ scale: [1, 1.5, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
                 </div>
                 <div>
-                  <span className="font-semibold">AI Study Assistant</span>
+                  <span className="font-semibold text-sm sm:text-base">AI Study Assistant</span>
                   {!minimized && (
                     <motion.p 
-                      className="text-xs text-white/80 font-normal"
+                      className="text-xs text-white/80 font-normal hidden sm:block"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                     >
@@ -257,7 +230,7 @@ export default function AIAssistant({ roleColor }) {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <motion.button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -278,7 +251,7 @@ export default function AIAssistant({ roleColor }) {
                   whileTap={{ scale: 0.9 }}
                   className="p-1 rounded-lg hover:bg-white/20 transition-colors"
                 >
-                  <X size={18} />
+                  <X size={16} className="sm:w-4 sm:h-4" />
                 </motion.button>
               </div>
             </motion.div>
@@ -287,12 +260,12 @@ export default function AIAssistant({ roleColor }) {
               <>
                 {/* Quick Actions */}
                 <motion.div 
-                  className="p-3 border-b border-slate-200 dark:border-slate-700"
+                  className="p-2 sm:p-3 border-b border-slate-200 dark:border-slate-700"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className="flex justify-between items-center mb-2 px-2">
+                  <div className="flex justify-between items-center mb-2 px-1 sm:px-2">
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                       Quick actions:
                     </p>
@@ -303,12 +276,12 @@ export default function AIAssistant({ roleColor }) {
                       Clear chat
                     </button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
                     {quickActions.map((action, index) => (
                       <motion.button
                         key={index}
                         onClick={() => handleQuickAction(action.prompt)}
-                        className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-medium transition-all
+                        className={`flex items-center space-x-1 px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs font-medium transition-all
                           ${darkMode 
                             ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' 
                             : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
@@ -316,15 +289,16 @@ export default function AIAssistant({ roleColor }) {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <action.icon size={12} />
-                        <span>{action.text}</span>
+                        <action.icon size={10} className="sm:w-3 sm:h-3" />
+                        <span className="hidden sm:inline">{action.text}</span>
+                        <span className="sm:hidden">{action.text.split(' ')[0]}</span>
                       </motion.button>
                     ))}
                   </div>
                 </motion.div>
 
                 {/* Enhanced Messages Area */}
-                <div className="flex-1 p-4 space-y-4 overflow-y-auto max-h-[380px]">
+                <div className="flex-1 p-2 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto max-h-[280px] sm:max-h-[380px]">
                   <AnimatePresence>
                     {messages.map((message, index) => (
                       <motion.div
@@ -334,25 +308,25 @@ export default function AIAssistant({ roleColor }) {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                       >
-                        <div className={`flex ${message.isBot ? "flex-row" : "flex-row-reverse"} items-end space-x-2 max-w-[85%]`}>
+                        <div className={`flex ${message.isBot ? "flex-row" : "flex-row-reverse"} items-end space-x-2 max-w-[90%] sm:max-w-[85%]`}>
                           {/* Avatar */}
                           <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                               message.isBot 
                                 ? "bg-gradient-to-br from-orange-500 to-amber-500" 
                                 : "bg-gradient-to-br from-blue-500 to-cyan-500"
                             }`}
                           >
                             {message.isBot ? (
-                              <Bot size={16} className="text-white" />
+                              <Bot size={12} className="sm:w-4 sm:h-4 text-white" />
                             ) : (
-                              <User size={16} className="text-white" />
+                              <User size={12} className="sm:w-4 sm:h-4 text-white" />
                             )}
                           </div>
 
                           {/* Message Bubble */}
                           <div
-                            className={`px-4 py-3 rounded-2xl shadow-sm ${
+                            className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl shadow-sm ${
                               message.isBot
                                 ? darkMode
                                   ? "bg-slate-800 border border-slate-700 text-slate-200 rounded-bl-none"
@@ -383,8 +357,8 @@ export default function AIAssistant({ roleColor }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                       >
-                        <div className="flex items-center space-x-2 px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <Loader2 size={16} className="animate-spin text-orange-500" />
+                        <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <Loader2 size={14} className="sm:w-4 sm:h-4 animate-spin text-orange-500" />
                           <span className="text-sm text-slate-600 dark:text-slate-300">AI is thinking...</span>
                         </div>
                       </motion.div>
@@ -396,15 +370,15 @@ export default function AIAssistant({ roleColor }) {
 
                 {/* Enhanced Input Area */}
                 <motion.div 
-                  className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
+                  className="p-2 sm:p-4 border-t border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
                     <div className="flex-1 relative">
                       <input
-                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-all duration-200 backdrop-blur-sm
+                        className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-xl border outline-none transition-all duration-200 backdrop-blur-sm text-sm sm:text-base
                           ${darkMode 
                             ? "bg-slate-800/80 border-slate-600 text-white placeholder-slate-400 focus:border-orange-500" 
                             : "bg-white/80 border-slate-300 text-slate-900 placeholder-slate-500 focus:border-orange-400"
@@ -416,15 +390,15 @@ export default function AIAssistant({ roleColor }) {
                         disabled={isLoading}
                       />
                       {isLoading && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <Loader2 size={16} className="animate-spin text-orange-500" />
+                        <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
+                          <Loader2 size={14} className="sm:w-4 sm:h-4 animate-spin text-orange-500" />
                         </div>
                       )}
                     </div>
                     <motion.button
                       onClick={sendMessage}
                       disabled={isLoading || !input.trim()}
-                      className={`p-3 rounded-xl text-white transition-all duration-200 flex items-center justify-center
+                      className={`p-2 sm:p-3 rounded-xl text-white transition-all duration-200 flex items-center justify-center
                         ${isLoading || !input.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-lg'}`}
                       style={{ 
                         background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
@@ -433,10 +407,10 @@ export default function AIAssistant({ roleColor }) {
                       whileHover={!isLoading && input.trim() ? { scale: 1.05 } : {}}
                       whileTap={!isLoading && input.trim() ? { scale: 0.95 } : {}}
                     >
-                      <Send size={18} />
+                      <Send size={16} className="sm:w-4 sm:h-4" />
                     </motion.button>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 text-center hidden sm:block">
                     Design Demo • Hardcoded responses for testing
                   </p>
                 </motion.div>

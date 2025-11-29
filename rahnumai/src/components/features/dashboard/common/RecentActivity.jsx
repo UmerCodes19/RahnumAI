@@ -1,4 +1,3 @@
-// src/components/RecentActivity.jsx (FIXED)
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, Link, FileText, BarChart3, RefreshCw } from 'lucide-react';
@@ -76,19 +75,19 @@ const RecentActivity = () => {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.1 }}
-        className={`relative rounded-xl p-3 transition-all duration-200 group backdrop-blur-sm border ${
+        className={`relative rounded-lg sm:rounded-xl p-2 sm:p-3 transition-all duration-200 group backdrop-blur-sm border ${
           darkMode 
             ? 'border-slate-700 hover:border-orange-600' 
             : 'border-slate-200 hover:border-orange-400'
         }`}
       >
-        <div className="flex items-start space-x-3">
-          <div className={`p-2 rounded-lg transition-colors ${
+        <div className="flex items-start space-x-2 sm:space-x-3">
+          <div className={`p-1.5 sm:p-2 rounded-lg transition-colors ${
             darkMode
               ? 'bg-violet-900/20 group-hover:bg-violet-900/30'
               : 'bg-violet-50 group-hover:bg-violet-100'
           }`}>
-            <activity.icon className={`w-4 h-4 ${
+            <activity.icon className={`w-3 h-3 sm:w-4 sm:h-4 ${
               darkMode ? 'text-violet-400' : 'text-violet-600'
             }`} />
           </div>
@@ -99,11 +98,11 @@ const RecentActivity = () => {
               }`}>
                 {activity.title}
               </h3>
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(activity.status)}`}>
+              <span className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs font-medium rounded-full ${getStatusColor(activity.status)}`}>
                 {activity.status}
               </span>
             </div>
-            <p className={`text-sm mt-1 truncate ${
+            <p className={`text-xs sm:text-sm mt-0.5 truncate ${
               darkMode ? 'text-slate-400' : 'text-slate-600'
             }`}>
               {activity.description}
@@ -114,12 +113,12 @@ const RecentActivity = () => {
               {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
             </p>
           </div>
-          <button className={`opacity-0 group-hover:opacity-100 p-1.5 rounded-lg transition-all ${
+          <button className={`opacity-0 group-hover:opacity-100 p-1 rounded-lg transition-all ${
             darkMode
               ? 'hover:bg-slate-600'
               : 'hover:bg-slate-200'
           }`}>
-            <RefreshCw className={`w-4 h-4 ${
+            <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${
               darkMode ? 'text-slate-400' : 'text-slate-500'
             }`} />
           </button>
@@ -129,18 +128,18 @@ const RecentActivity = () => {
   };
 
   return (
-    <div className={`rounded-2xl p-6 border backdrop-blur-sm ${
+    <div className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 border backdrop-blur-sm ${
       darkMode
         ? 'bg-slate-800/80 border-slate-700'
         : 'bg-white/80 border-slate-200'
     }`}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className={`text-lg font-semibold ${
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <h2 className={`text-base sm:text-lg font-semibold ${
           darkMode ? 'text-white' : 'text-slate-900'
         }`}>
           Recent Activity
         </h2>
-        <button className={`text-sm font-medium ${
+        <button className={`text-xs sm:text-sm font-medium ${
           darkMode
             ? 'text-violet-400 hover:text-violet-300'
             : 'text-violet-600 hover:text-violet-700'
@@ -148,7 +147,7 @@ const RecentActivity = () => {
           View All
         </button>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-3">
         {activities.map((activity, index) => (
           <ActivityItem key={activity.id} activity={activity} index={index} />
         ))}

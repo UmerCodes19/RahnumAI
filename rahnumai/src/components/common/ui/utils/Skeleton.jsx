@@ -1,14 +1,28 @@
 import React from "react";
 
-const Skeleton = ({ className = "", width = "full", height = "6", circle = false }) => {
+const Skeleton = ({ 
+  className = "", 
+  width = "full", 
+  height = "6", 
+  circle = false,
+  responsive = true 
+}) => {
   const widthClass = width === "full" ? "w-full" : `w-${width}`;
   const heightClass = height === "full" ? "h-full" : `h-${height}`;
   
+  const responsiveClasses = responsive 
+    ? "min-h-[20px] sm:min-h-0" 
+    : "";
+  
   return (
     <div
-      className={`bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 animate-pulse ${
-        circle ? "rounded-full" : "rounded-lg"
-      } ${widthClass} ${heightClass} ${className}`}
+      className={`
+        bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 
+        dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 
+        animate-pulse 
+        ${circle ? "rounded-full" : "rounded-lg"}
+        ${widthClass} ${heightClass} ${responsiveClasses} ${className}
+      `}
       style={{
         backgroundSize: "200% 100%",
         animation: "pulse 2s infinite, shimmer 2s infinite"

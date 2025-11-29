@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import ThemeToggle from '@/components/common/theme/ThemeToggle';
-import ColorBends from '@/components/visual/ColorBends'; // Make sure path is correct
-
+import ColorBends from '@/components/visual/ColorBends';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import {
   Rocket,
@@ -26,18 +25,19 @@ import {
   Target,
   Lightbulb,
   Network,
-  Code
+  Code,
+  Menu,
+  X
 } from "lucide-react";
 
 import { Button } from "@/components/common/ui/buttons/button";
 
-// Color scheme matching the transition overlay
 const COLOR_SCHEME = {
-  primary: "#f97316",    // Orange
-  secondary: "#eab308",  // Amber
-  accent: "#8311f2",     // Purple
-  dark: "#0f172a",       // Slate-900
-  light: "#f8fafc",      // Slate-50
+  primary: "#f97316",
+  secondary: "#eab308",
+  accent: "#8311f2",
+  dark: "#0f172a",
+  light: "#f8fafc",
 };
 
 const COLOR_BENDS = ["#f97316", "#eab308", "#8311f2", "#3b82f6", "#10b981"];
@@ -45,7 +45,6 @@ const COLOR_BENDS = ["#f97316", "#eab308", "#8311f2", "#3b82f6", "#10b981"];
 const CinematicBackground = ({ darkMode }) => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Animated gradient overlays */}
       <motion.div
         className={`absolute inset-0 ${
           darkMode 
@@ -62,7 +61,6 @@ const CinematicBackground = ({ darkMode }) => {
         }}
       />
       
-      {/* Soft animated sweep */}
       <div className="absolute inset-0 opacity-10">
         <motion.div
           className={`w-full h-full ${
@@ -81,7 +79,6 @@ const CinematicBackground = ({ darkMode }) => {
         />
       </div>
 
-      {/* Subtle grid */}
       <div className={`absolute inset-0 ${darkMode ? "opacity-[0.02]" : "opacity-[0.03]"}`}>
         <div className="absolute inset-0" style={{
           backgroundImage: `
@@ -120,6 +117,7 @@ export default function LandingPage() {
   const [activeSection, setActiveSection] = useState("home");
   const [navState, setNavState] = useState("docked");
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { scrollY } = useScroll();
 
   const heroRef = useRef(null);
@@ -132,7 +130,6 @@ export default function LandingPage() {
   const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
   const ctaInView = useInView(ctaRef, { once: true });
 
-  // Navbar scroll behavior
   useMotionValueEvent(scrollY, "change", (latest) => {
     const scrollingDown = latest > lastScrollY;
     const scrolledPastHero = latest > 100;
@@ -180,24 +177,11 @@ export default function LandingPage() {
     }
   };
 
-  // Text colors for light/dark mode
-  const textColors = {
-    primary: darkMode ? "text-white" : "text-gray-900",
-    secondary: darkMode ? "text-blue-300" : "text-blue-600",
-    muted: darkMode ? "text-slate-400" : "text-gray-600",
-  };
-
-  const borderColors = {
-    light: darkMode ? "border-slate-700/30" : "border-gray-200/50",
-    medium: darkMode ? "border-slate-600/50" : "border-gray-300",
-  };
-
   return (
     <div className={`min-h-screen transition-colors duration-500 overflow-hidden ${
       darkMode ? "dark bg-gray-900" : "bg-white"
     }`}>
       
-      {/* Cinematic Background */}
       <div className="fixed inset-0">
         <ColorBends
           colors={COLOR_BENDS}
@@ -213,7 +197,7 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Navigation - Minimal and Professional */}
+      {/* Navigation */}
       <motion.nav
         className={`fixed top-0 left-0 right-0 z-50 border-b ${
           darkMode ? "border-slate-700/50" : "border-gray-200/50"
@@ -223,21 +207,20 @@ export default function LandingPage() {
         animate={navState}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
+        <div className="container-responsive">
+          <div className="flex items-center justify-between py-4">
             <motion.div
               className="flex items-center space-x-3"
               whileHover={{ scale: 1.05 }}
             >
               <motion.div
-                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center"
+                className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center"
                 whileHover={{ scale: 1.1, rotate: 5 }}
               >
-                <Brain className="w-5 h-5 text-white" />
+                <Brain className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
               </motion.div>
               <motion.span
-                className={`text-2xl font-bold uppercase tracking-tight ${
+                className={`text-xl lg:text-2xl font-bold uppercase tracking-tight ${
                   darkMode ? "text-white" : "text-gray-900"
                 }`}
                 style={{
@@ -251,7 +234,7 @@ export default function LandingPage() {
               </motion.span>
             </motion.div>
 
-            {/* Navigation Items */}
+            {/* Desktop Navigation */}
             <motion.div
               className="hidden md:flex items-center space-x-8"
             >
@@ -281,42 +264,81 @@ export default function LandingPage() {
               ))}
             </motion.div>
 
-            {/* Right Side */}
-            <motion.div
-              className="flex items-center space-x-4"
-            >
+            {/* Mobile Menu Button */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg touch-button"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
               <ThemeToggle />
-              <Link to="/login">
+              <Link to="/login" className="hidden md:block">
                 <Button 
                   size="lg" 
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide"
+                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide touch-button"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   Get Started
                 </Button>
               </Link>
-            </motion.div>
+            </div>
           </div>
+
+          {/* Mobile Navigation */}
+          <motion.div
+            className={`md:hidden border-t ${darkMode ? "border-slate-700/30" : "border-gray-200/50"} ${
+              mobileMenuOpen ? "block" : "hidden"
+            }`}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: mobileMenuOpen ? "auto" : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="py-4 space-y-4">
+              {["home", "stats", "features", "cta"].map((id) => (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  className={`block py-2 font-semibold uppercase tracking-wide transition-colors ${
+                    activeSection === id
+                      ? "text-orange-500"
+                      : darkMode
+                      ? "text-slate-300 hover:text-orange-400"
+                      : "text-gray-700 hover:text-orange-600"
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {id.charAt(0).toUpperCase() + id.slice(1)}
+                </a>
+              ))}
+              <Link to="/login" className="block">
+                <Button 
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide touch-button"
+                >
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </motion.nav>
 
-      {/* Add padding to account for navbar */}
       <div className="pt-20"></div>
 
-      {/* Hero Section - Cinematic Style */}
+      {/* Hero Section */}
       <section id="home" ref={heroRef} className="relative min-h-screen flex items-center justify-center">
         <CinematicBackground darkMode={darkMode} />
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <div className="container-responsive text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={heroInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1.2 }}
           >
-            {/* Main Title */}
             <TextGlow darkMode={darkMode}>
               <motion.h1
-                className={`text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight mb-8 leading-tight ${
+                className={`heading-responsive font-black uppercase tracking-tight mb-6 lg:mb-8 leading-tight ${
                   darkMode ? "text-white" : "text-gray-900"
                 }`}
                 style={{
@@ -334,11 +356,10 @@ export default function LandingPage() {
               </motion.h1>
             </TextGlow>
 
-            {/* Subtitle */}
             <motion.p
-              className={`text-xl md:text-2xl uppercase tracking-wide font-light mb-12 max-w-3xl mx-auto ${
+              className={`subheading-responsive uppercase tracking-wide font-light mb-8 lg:mb-12 max-w-3xl mx-auto ${
                 darkMode ? "text-blue-300" : "text-blue-600"
-              }`}
+              } mobile-text-center`}
               style={{
                 textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
                 fontFamily: "'Inter','Arial',sans-serif",
@@ -350,17 +371,16 @@ export default function LandingPage() {
               Built for Educators. Designed with purpose. Powered by intelligence.
             </motion.p>
 
-            {/* CTA Buttons */}
             <motion.div
-              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center mobile-stack mobile-gap-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Link to="/login">
+              <Link to="/login" className="w-full sm:w-auto">
                 <Button 
                   size="xl" 
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group"
+                  className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group touch-button"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -371,11 +391,11 @@ export default function LandingPage() {
               <Button 
                 size="xl" 
                 variant="outline"
-                className={`${
+                className={`w-full sm:w-auto ${
                   darkMode 
                     ? "border-white/30 text-white hover:bg-white/10" 
                     : "border-gray-700 text-gray-700 hover:bg-gray-100"
-                } font-semibold uppercase tracking-wide`}
+                } font-semibold uppercase tracking-wide touch-button`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -387,11 +407,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats Section - Clean and Professional */}
-      <section id="stats" ref={statsRef} className="relative py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Stats Section */}
+      <section id="stats" ref={statsRef} className="relative py-16 lg:py-24">
+        <div className="container-responsive">
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
             initial="initial"
             animate={statsInView ? "animate" : "initial"}
             variants={{
@@ -416,13 +436,13 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.1, type: "spring" }}
               >
                 <motion.div
-                  className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center"
+                  className="w-16 h-16 lg:w-20 lg:h-20 mx-auto mb-4 lg:mb-6 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
-                  <stat.icon className="w-10 h-10 text-white" />
+                  <stat.icon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
                 </motion.div>
                 <div 
-                  className={`text-4xl md:text-5xl font-black mb-2 ${
+                  className={`text-2xl lg:text-4xl xl:text-5xl font-black mb-2 ${
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                   style={{
@@ -433,9 +453,9 @@ export default function LandingPage() {
                 >
                   {stat.number}{stat.suffix}
                 </div>
-                <p className={`${
+                <p className={`text-sm lg:text-base ${
                   darkMode ? "text-blue-300" : "text-blue-600"
-                } uppercase tracking-wide font-light`}>
+                } uppercase tracking-wide font-light mobile-text-center`}>
                   {stat.label}
                 </p>
               </motion.div>
@@ -444,21 +464,20 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section - Professional Layout */}
-      <section id="features" ref={featuresRef} className="relative py-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
+      {/* Features Section */}
+      <section id="features" ref={featuresRef} className="relative py-16 lg:py-32">
+        <div className="container-responsive">
           <motion.div
-            className="text-center mb-20"
+            className="text-center mb-12 lg:mb-20"
             initial={{ opacity: 0, y: 30 }}
             animate={featuresInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8 }}
           >
             <TextGlow darkMode={darkMode}>
               <h2 
-                className={`text-5xl md:text-6xl font-black uppercase tracking-tight mb-6 ${
+                className={`heading-responsive font-black uppercase tracking-tight mb-6 ${
                   darkMode ? "text-white" : "text-gray-900"
-                }`}
+                } mobile-text-center`}
                 style={{
                   textShadow: darkMode 
                     ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
@@ -470,9 +489,9 @@ export default function LandingPage() {
               </h2>
             </TextGlow>
             <p 
-              className={`text-xl md:text-2xl uppercase tracking-wide font-light max-w-3xl mx-auto ${
+              className={`subheading-responsive uppercase tracking-wide font-light max-w-3xl mx-auto ${
                 darkMode ? "text-blue-300" : "text-blue-600"
-              }`}
+              } mobile-text-center`}
               style={{
                 textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
               }}
@@ -481,9 +500,8 @@ export default function LandingPage() {
             </p>
           </motion.div>
 
-          {/* Features Grid */}
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8"
             variants={{
               animate: {
                 transition: {
@@ -534,7 +552,7 @@ export default function LandingPage() {
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                className={`backdrop-blur-sm border rounded-xl p-8 hover:border-orange-400/50 transition-all duration-300 ${
+                className={`backdrop-blur-sm border rounded-xl p-6 lg:p-8 hover:border-orange-400/50 transition-all duration-300 ${
                   darkMode 
                     ? "bg-gradient-to-br from-gray-900/50 to-black/50 border-slate-700/30" 
                     : "bg-white/80 border-gray-200/50 shadow-lg"
@@ -544,13 +562,13 @@ export default function LandingPage() {
                 whileHover={{ y: -5, scale: 1.02 }}
               >
                 <div 
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl flex items-center justify-center mb-4 lg:mb-6"
                   style={{ backgroundColor: feature.color }}
                 >
-                  <feature.icon className="w-7 h-7 text-white" />
+                  <feature.icon className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
                 </div>
                 <h3 
-                  className={`text-2xl font-bold uppercase tracking-tight mb-4 ${
+                  className={`text-xl lg:text-2xl font-bold uppercase tracking-tight mb-4 ${
                     darkMode ? "text-white" : "text-gray-900"
                   }`}
                   style={{
@@ -560,17 +578,17 @@ export default function LandingPage() {
                 >
                   {feature.title}
                 </h3>
-                <p className={`leading-relaxed font-light ${
+                <p className={`text-responsive leading-relaxed font-light ${
                   darkMode ? "text-blue-300" : "text-gray-600"
                 }`}>
                   {feature.description}
                 </p>
-                <div className={`mt-6 pt-6 border-t ${
+                <div className={`mt-4 lg:mt-6 pt-4 lg:pt-6 border-t ${
                   darkMode ? "border-slate-700/30" : "border-gray-200"
                 }`}>
                   <div className="flex items-center space-x-3 text-sm">
                     <div 
-                      className="w-3 h-3 rounded-full animate-pulse"
+                      className="w-2 h-2 lg:w-3 lg:h-3 rounded-full animate-pulse"
                       style={{ backgroundColor: feature.color }}
                     />
                     <span className={`uppercase tracking-wide ${
@@ -586,10 +604,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section - Cinematic */}
-      <section id="cta" ref={ctaRef} className="relative py-32">
+      {/* CTA Section */}
+      <section id="cta" ref={ctaRef} className="relative py-16 lg:py-32">
         <CinematicBackground darkMode={darkMode} />
-        <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="container-responsive text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={ctaInView ? { opacity: 1, y: 0 } : {}}
@@ -597,9 +615,9 @@ export default function LandingPage() {
           >
             <TextGlow darkMode={darkMode}>
               <motion.h2
-                className={`text-5xl md:text-6xl font-black uppercase tracking-tight mb-8 ${
+                className={`heading-responsive font-black uppercase tracking-tight mb-6 lg:mb-8 ${
                   darkMode ? "text-white" : "text-gray-900"
-                }`}
+                } mobile-text-center`}
                 style={{
                   textShadow: darkMode 
                     ? "2px 2px 15px rgba(0,0,0,0.8), 0 0 30px rgba(59,130,246,0.3)"
@@ -619,9 +637,9 @@ export default function LandingPage() {
             </TextGlow>
 
             <motion.p
-              className={`text-xl md:text-2xl uppercase tracking-wide font-light mb-12 max-w-3xl mx-auto ${
+              className={`subheading-responsive uppercase tracking-wide font-light mb-8 lg:mb-12 max-w-3xl mx-auto ${
                 darkMode ? "text-blue-300" : "text-blue-600"
-              }`}
+              } mobile-text-center`}
               style={{
                 textShadow: darkMode ? "1px 1px 8px rgba(0,0,0,0.6)" : "none",
               }}
@@ -633,15 +651,15 @@ export default function LandingPage() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center items-center mobile-stack mobile-gap-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <Link to="/login">
+              <Link to="/login" className="w-full sm:w-auto">
                 <Button 
                   size="xl" 
-                  className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group"
+                  className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold uppercase tracking-wide group touch-button"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -652,11 +670,11 @@ export default function LandingPage() {
               <Button 
                 size="xl" 
                 variant="outline"
-                className={`${
+                className={`w-full sm:w-auto ${
                   darkMode 
                     ? "border-white/30 text-white hover:bg-white/10" 
                     : "border-gray-700 text-gray-700 hover:bg-gray-100"
-                } font-semibold uppercase tracking-wide`}
+                } font-semibold uppercase tracking-wide touch-button`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -667,18 +685,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer - Minimal */}
-      <footer className={`relative py-12 border-t ${
+      {/* Footer */}
+      <footer className={`relative py-8 lg:py-12 border-t ${
         darkMode ? "border-slate-700/30" : "border-gray-200"
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="container-responsive">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 mobile-stack mobile-gap-4">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
-                <Brain className="w-4 h-4 text-white" />
+              <div className="w-6 h-6 lg:w-8 lg:h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
+                <Brain className="w-3 h-3 lg:w-4 lg:h-4 text-white" />
               </div>
               <span 
-                className={`text-xl font-bold uppercase tracking-tight ${
+                className={`text-lg lg:text-xl font-bold uppercase tracking-tight ${
                   darkMode ? "text-white" : "text-gray-900"
                 }`}
                 style={{
@@ -689,7 +707,7 @@ export default function LandingPage() {
                 RahnumAI
               </span>
             </div>
-            <div className="flex gap-6">
+            <div className="flex gap-4 lg:gap-6 mobile-stack mobile-gap-4">
               {["Privacy", "Terms", "Contact"].map((item) => (
                 <motion.a
                   key={item}
@@ -704,7 +722,7 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-          <div className={`mt-8 pt-8 border-t ${
+          <div className={`mt-6 lg:mt-8 pt-6 lg:pt-8 border-t ${
             darkMode ? "border-slate-700/30" : "border-gray-200"
           } text-center`}>
             <p className={`uppercase tracking-wide text-sm font-light ${

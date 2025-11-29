@@ -1,4 +1,3 @@
-// src/components/QuickActions.jsx (FIXED)
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, FileText, Link, Zap, BarChart3, Code } from 'lucide-react';
@@ -33,29 +32,29 @@ const QuickActions = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: index * 0.1 }}
-        className={`relative rounded-xl overflow-hidden p-3 lg:p-4 bg-gradient-to-br ${colorClasses[action.color]} text-white transition-all duration-200 group backdrop-blur-sm hover:scale-105`}
+        className={`relative rounded-lg sm:rounded-xl overflow-hidden p-3 sm:p-4 bg-gradient-to-br ${colorClasses[action.color]} text-white transition-all duration-200 group backdrop-blur-sm hover:scale-105`}
         style={{
           boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
         }}
       >
-        <action.icon className="w-5 h-5 lg:w-6 lg:h-6 mb-1 lg:mb-2 group-hover:scale-110 transition-transform mx-auto relative z-10" />
-        <p className="text-xs lg:text-sm font-medium text-center relative z-10">{action.label}</p>
+        <action.icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 mb-1 lg:mb-2 group-hover:scale-110 transition-transform mx-auto relative z-10" />
+        <p className="text-xs sm:text-sm font-medium text-center relative z-10 leading-tight sm:leading-normal">{action.label}</p>
       </motion.button>
     );
   };
 
   return (
-    <div className={`rounded-2xl p-4 lg:p-6 border backdrop-blur-sm ${
+    <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-6 border backdrop-blur-sm ${
       darkMode
         ? 'bg-slate-800/80 border-slate-700'
         : 'bg-white/80 border-slate-200'
     }`}>
-      <h2 className={`text-lg font-semibold mb-4 ${
+      <h2 className={`text-base sm:text-lg font-semibold mb-3 sm:mb-4 ${
         darkMode ? 'text-white' : 'text-slate-900'
       }`}>
         Quick Actions
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
         {actions.map((action, index) => (
           <ActionButton key={action.label} action={action} index={index} />
         ))}
