@@ -1,26 +1,43 @@
 // src/pages/dashboard/Courses.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, X, Download, Users, Clock } from 'lucide-react';
 import Card from '@/components/common/ui/cards/Card';
 import StatsCard from '@/components/common/ui/cards/StatsCard';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 
 const Courses = () => {
-  const [courses, setCourses] = useState([
-    { id: 1, name: 'Mathematics 101', code: 'MATH101', instructor: 'Dr. Smith', progress: 75, enrolled: 45, duration: '15 weeks' },
-    { id: 2, name: 'Computer Science', code: 'CS101', instructor: 'Prof. Johnson', progress: 60, enrolled: 32, duration: '16 weeks' },
-    { id: 3, name: 'Physics Fundamentals', code: 'PHY101', instructor: 'Dr. Wilson', progress: 45, enrolled: 28, duration: '14 weeks' },
-    { id: 4, name: 'English Literature', code: 'ENG201', instructor: 'Dr. Brown', progress: 90, enrolled: 38, duration: '12 weeks' }
-  ]);
-
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
-const { theme } = useThemeGlobal();
-    const darkMode = theme === 'dark';
+  const { theme } = useThemeGlobal();
+  const darkMode = theme === 'dark';
+
+  // Fetch courses from API on mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const response = await api.courses.getCourses();
+        // Handle both array and object responses
+        const courseList = Array.isArray(response) ? response : (response.courses || []);
+        setCourses(courseList);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to load courses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const stats = [
-    { title: "Total Courses", value: "4", subtitle: "All enrolled courses", icon: BookOpen, color: "blue" },
-    { title: "In Progress", value: "3", subtitle: "Active this semester", icon: Clock, color: "orange" },
-    { title: "Completion Rate", value: "67%", subtitle: "Overall progress", icon: Users, color: "green" },
+    { title: "Total Courses", value: courses.length.toString(), subtitle: "All enrolled courses", icon: BookOpen, color: "blue" },
+    { title: "In Progress", value: (courses.filter(c => c.progress < 100).length).toString(), subtitle: "Active this semester", icon: Clock, color: "orange" },
+    { title: "Completion Rate", value: courses.length > 0 ? Math.round(courses.reduce((acc, c) => acc + (c.progress || 0), 0) / courses.length) + '%' : '0%', subtitle: "Overall progress", icon: Users, color: "green" },
     { title: "Credits Earned", value: "12", subtitle: "This semester", icon: Download, color: "purple" }
   ];
 

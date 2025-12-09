@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { FileText, Plus, Trash2, Download, Shuffle } from 'lucide-react';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import Card from '@/components/common/ui/cards/Card';
-import { useApi } from '@/contexts/ApiContext';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 
 export default function PaperGenerator() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
-  const { chatWithAI } = useApi();
 
   const [paperConfig, setPaperConfig] = useState({
     subject: 'Mathematics',
@@ -68,27 +68,36 @@ export default function PaperGenerator() {
   const generatePaper = async () => {
     setLoading(true);
     try {
-      // Simulate AI paper generation
-      setTimeout(() => {
-        const mockPaper = {
-          id: Date.now(),
-          title: `${paperConfig.subject} Examination`,
-          instructions: 'Answer all questions. Show your working where necessary.',
-          sections: paperConfig.sections.map(section => ({
-            ...section,
-            questions: Array.from({ length: section.questions }, (_, i) => ({
-              id: i + 1,
-              text: `Sample question ${i + 1} for ${section.name}`,
-              marks: section.marks / section.questions,
-              type: section.name.includes('Multiple') ? 'mcq' : 'descriptive'
-            }))
+      // Call the API to generate exam paper
+      const response = await api.ai.generateExamPaper(1, {
+        difficulty: paperConfig.difficulty,
+        duration_minutes: parseInt(paperConfig.duration),
+        total_marks: paperConfig.totalMarks
+      });
+
+      const paperData = response.paper_data || { questions: [] };
+      const generatedPaper = {
+        id: Date.now(),
+        title: `${paperConfig.subject} Examination`,
+        instructions: 'Answer all questions. Show your working where necessary.',
+        sections: paperConfig.sections.map(section => ({
+          ...section,
+          questions: Array.from({ length: section.questions }, (_, i) => ({
+            id: i + 1,
+            text: `Sample question ${i + 1} for ${section.name}`,
+            marks: section.marks / section.questions,
+            type: section.name.includes('Multiple') ? 'mcq' : 'descriptive'
           }))
-        };
-        setGeneratedPaper(mockPaper);
-        setLoading(false);
-      }, 2000);
+        })),
+        generatedQuestions: paperData.questions || []
+      };
+      
+      setGeneratedPaper(generatedPaper);
+      toast.success('Exam paper generated successfully!');
+      setLoading(false);
     } catch (error) {
       console.error('Error generating paper:', error);
+      toast.error('Failed to generate exam paper');
       setLoading(false);
     }
   };

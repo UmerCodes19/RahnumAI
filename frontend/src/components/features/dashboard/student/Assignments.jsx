@@ -1,81 +1,66 @@
 // src/pages/dashboard/Assignments.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Upload, Clock, AlertCircle, CheckCircle, Download, Eye } from 'lucide-react';
 import Card from '@/components/common/ui/cards/Card';
 import StatsCard from '@/components/common/ui/cards/StatsCard';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 
 const Assignments = () => {
-
   const { theme } = useThemeGlobal();
-      const darkMode = theme === 'dark';
-  const [assignments, setAssignments] = useState([
-    { 
-      id: 1, 
-      title: 'Math Problem Set', 
-      course: 'MATH101', 
-      dueDate: '2024-12-20', 
-      status: 'pending', 
-      type: 'AI Generated',
-      description: 'Solve the following calculus problems and show your work.',
-      points: 100,
-      submitted: false
-    },
-    { 
-      id: 2, 
-      title: 'Programming Project', 
-      course: 'CS101', 
-      dueDate: '2024-12-25', 
-      status: 'submitted', 
-      type: 'AI Generated',
-      description: 'Create a web application using React and Node.js.',
-      points: 150,
-      submitted: true,
-      grade: 'A-'
-    },
-    { 
-      id: 3, 
-      title: 'Physics Lab Report', 
-      course: 'PHY101', 
-      dueDate: '2024-12-18', 
-      status: 'pending', 
-      type: 'Regular',
-      description: 'Write a comprehensive report on the pendulum experiment.',
-      points: 80,
-      submitted: false
-    },
-    { 
-      id: 4, 
-      title: 'Literature Essay', 
-      course: 'ENG201', 
-      dueDate: '2024-12-22', 
-      status: 'graded', 
-      type: 'Regular',
-      description: 'Analyze the themes in Shakespeare\'s Macbeth.',
-      points: 100,
-      submitted: true,
-      grade: 'B+'
-    }
-  ]);
-
+  const darkMode = theme === 'dark';
+  const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [courseFilter, setCourseFilter] = useState('all');
-  
+
+  // Fetch assignments from API on mount
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        setLoading(true);
+        const response = await api.assignments.submitAssignment ? 
+          await api.courses.getAssignments(1) : // Fetch for a sample course
+          [];
+        const assignmentList = Array.isArray(response) ? response : (response.assignments || []);
+        setAssignments(assignmentList);
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+        // Use empty array on error (will show no assignments)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, []);
 
   const stats = [
-    { title: "Due This Week", value: "3", subtitle: "Assignments pending", icon: Clock, color: "orange" },
-    { title: "Submitted", value: "2", subtitle: "Completed assignments", icon: CheckCircle, color: "green" },
+    { title: "Due This Week", value: assignments.filter(a => a.status === 'pending').length.toString(), subtitle: "Assignments pending", icon: Clock, color: "orange" },
+    { title: "Submitted", value: assignments.filter(a => a.submitted).length.toString(), subtitle: "Completed assignments", icon: CheckCircle, color: "green" },
     { title: "Average Grade", value: "B+", subtitle: "Current performance", icon: FileText, color: "blue" },
     { title: "Late Submissions", value: "0", subtitle: "On track", icon: AlertCircle, color: "purple" }
   ];
 
-  const handleSubmit = (assignmentId) => {
-    setAssignments(prev => prev.map(assignment => 
-      assignment.id === assignmentId 
-        ? { ...assignment, status: 'submitted', submitted: true }
-        : assignment
-    ));
+  const handleSubmit = async (assignmentId) => {
+    try {
+      const formData = new FormData();
+      formData.append('assignment_id', assignmentId);
+      formData.append('content', 'Assignment submission');
+      
+      await api.assignments.submitAssignment(formData);
+      
+      setAssignments(prev => prev.map(assignment => 
+        assignment.id === assignmentId 
+          ? { ...assignment, status: 'submitted', submitted: true }
+          : assignment
+      ));
+      toast.success('Assignment submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting assignment:', error);
+      toast.error('Failed to submit assignment');
+    }
   };
-  
 
   return (
   <div className={`min-h-screen space-y-6 p-6 ${darkMode ? '' : ''}`}>

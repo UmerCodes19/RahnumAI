@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User, Sparkles, Brain, BookOpen, Loader2 } from "lucide-react";
 import { useThemeGlobal } from "@/components/common/theme/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "@/services/api";
 
 export default function AIAssistant({ roleColor }) {
   const [open, setOpen] = useState(false);
@@ -24,22 +25,6 @@ export default function AIAssistant({ roleColor }) {
   const darkMode = theme === "dark";
   const accentColor = roleColor?.primary || "#f39c12";
 
-  // Student data context (simulated - in real app, this would come from your backend)
-  const studentData = {
-    courses: ["Mathematics", "Computer Science", "Physics"],
-    currentAssignments: [
-      { subject: "Mathematics", due: "2024-01-15", topic: "Calculus" },
-      { subject: "Computer Science", due: "2024-01-20", topic: "Data Structures" }
-    ],
-    performance: {
-      mathematics: 85,
-      computerScience: 92,
-      physics: 78
-    },
-    learningStyle: "visual", // Could be visual, auditory, kinesthetic
-    weakAreas: ["Quantum Mechanics", "Algorithm Complexity"]
-  };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -53,26 +38,36 @@ export default function AIAssistant({ roleColor }) {
     setIsLoading(true);
     setThinking(true);
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    try {
+      // Call the real API
+      const response = await api.ai.chatWithAI({
+        prompt: userMessage
+      });
 
-    // Keyword-based hardcoded responses
-    const lowerMessage = userMessage.toLowerCase();
+      setThinking(false);
+      return response.response || "I'm sorry, I couldn't process your question. Please try again.";
+    } catch (error) {
+      console.error('AI Chat error:', error);
+      
+      // Fallback to mock responses if API fails
+      setThinking(false);
+      const lowerMessage = userMessage.toLowerCase();
 
-    if (lowerMessage.includes('math') || lowerMessage.includes('calculus')) {
-      return "Based on your performance (85% in Mathematics), I recommend focusing on practice problems. For calculus, try visualizing graphs and using step-by-step approaches. Would you like me to explain any specific calculus concept?";
-    } else if (lowerMessage.includes('computer') || lowerMessage.includes('programming') || lowerMessage.includes('code')) {
-      return "Your Computer Science performance is excellent (92%)! For data structures, consider creating visual diagrams to better understand algorithms. I can help you with programming concepts or review your current assignment on Data Structures.";
-    } else if (lowerMessage.includes('physics') || lowerMessage.includes('quantum')) {
-      return "I see Physics is an area for improvement (78%). For quantum mechanics, try watching explanatory videos and working through conceptual problems first. Your visual learning style might benefit from diagrams and simulations.";
-    } else if (lowerMessage.includes('assignment') || lowerMessage.includes('homework')) {
-      return "I can help with your assignments! You have Mathematics (Calculus) due Jan 15 and Computer Science (Data Structures) due Jan 20. Which assignment would you like to focus on?";
-    } else if (lowerMessage.includes('study') || lowerMessage.includes('learn')) {
-      return "As a visual learner, I recommend using mind maps, diagrams, and color-coded notes. Based on your performance, focusing on Physics concepts would be most beneficial. Want me to suggest specific study techniques?";
-    } else if (lowerMessage.includes('help') || lowerMessage.includes('support')) {
-      return "I'm here to help! I can assist with:\n• Course material explanations\n• Assignment guidance\n• Study strategies\n• Concept reviews\n• Performance analysis\nWhat specific area do you need help with?";
-    } else {
-      return "I understand you're asking about: \"" + userMessage + "\". As your AI study assistant, I can provide personalized help based on your courses and learning style. Could you tell me more about what you'd like to learn or which subject you need help with?";
+      if (lowerMessage.includes('math') || lowerMessage.includes('calculus')) {
+        return "I can help you with mathematics and calculus! Please tell me what specific concept or problem you need assistance with.";
+      } else if (lowerMessage.includes('computer') || lowerMessage.includes('programming') || lowerMessage.includes('code')) {
+        return "I'm here to help with computer science and programming! What would you like to learn about?";
+      } else if (lowerMessage.includes('physics') || lowerMessage.includes('quantum')) {
+        return "Physics questions! I can help explain physics concepts. What topic are you studying?";
+      } else if (lowerMessage.includes('assignment') || lowerMessage.includes('homework')) {
+        return "I can help with your assignments! Tell me which subject or topic you need help with.";
+      } else if (lowerMessage.includes('study') || lowerMessage.includes('learn')) {
+        return "Great! I can suggest study strategies and learning techniques. What subject would you like to focus on?";
+      } else if (lowerMessage.includes('help') || lowerMessage.includes('support')) {
+        return "I'm here to help! I can assist with course materials, assignments, explanations, and study strategies.";
+      } else {
+        return "That's a great question! I'm here to help. Could you provide more details about what you'd like to learn?";
+      }
     }
   };
 

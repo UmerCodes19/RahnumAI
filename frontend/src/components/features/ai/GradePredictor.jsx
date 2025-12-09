@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import Card from '@/components/common/ui/cards/Card';
-import { useApi } from '@/contexts/ApiContext';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 
 export default function GradePredictor() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
-  const { getDashboardStats } = useApi();
 
   const [predictions, setPredictions] = useState([]);
   const [wellBeing, setWellBeing] = useState(null);
@@ -19,45 +19,32 @@ export default function GradePredictor() {
 
   const loadPredictions = async () => {
     try {
-      const mockPredictions = [
-        {
-          course: 'Mathematics',
+      // Fetch grade predictions from API
+      const gradesResponse = await api.ai.predictGrades();
+      const predictions = gradesResponse.prediction_data ? 
+        Object.entries(gradesResponse.prediction_data).map(([course, grade]) => ({
+          course,
           currentGrade: 85,
-          predictedGrade: 88,
-          confidence: 92,
-          risk: 'low',
-          recommendations: ['Complete assignment 3', 'Review chapter 5']
-        },
-        {
-          course: 'Computer Science',
-          currentGrade: 78,
-          predictedGrade: 82,
+          predictedGrade: grade,
           confidence: 85,
-          risk: 'medium',
-          recommendations: ['Attend office hours', 'Practice coding exercises']
-        },
-        {
-          course: 'Physics',
-          currentGrade: 92,
-          predictedGrade: 90,
-          confidence: 95,
           risk: 'low',
-          recommendations: ['Maintain current study habits']
-        }
-      ];
+          recommendations: ['Stay on track', 'Keep practicing']
+        })) : [];
 
-      const mockWellBeing = {
-        score: 7.2,
-        status: 'moderate',
-        factors: ['Sleep quality', 'Study load', 'Social engagement'],
-        recommendations: ['Take regular breaks', 'Maintain sleep schedule']
+      // Fetch well-being analysis
+      const wellBeingResponse = await api.ai.analyzeWellBeing();
+      const wellBeingData = wellBeingResponse.analysis_data || {
+        score: 7.0,
+        status: 'positive',
+        recommendations: ['Take regular breaks', 'Maintain healthy habits']
       };
 
-      setPredictions(mockPredictions);
-      setWellBeing(mockWellBeing);
+      setPredictions(predictions);
+      setWellBeing(wellBeingData);
       setLoading(false);
     } catch (error) {
       console.error('Error loading predictions:', error);
+      toast.error('Failed to load predictions');
       setLoading(false);
     }
   };

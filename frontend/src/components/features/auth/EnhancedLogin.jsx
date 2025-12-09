@@ -7,7 +7,7 @@ import { useThemeGlobal } from "@/components/common/theme/ThemeProvider";
 import MagicCard from "@/components/visual/MagicCard";
 import Skeleton from "@/components/common/ui/utils/Skeleton";
 import { toast } from "react-toastify";
-import { useApi } from "@/contexts/ApiContext";
+import api from "@/services/api";
 import React from "react";
 // Move CustomInput and CustomSelect outside the main component to prevent recreation
 const CustomInput = React.memo(({
@@ -236,25 +236,13 @@ export default function EnhancedLogin({ onLoginSuccess }) {
 
     try {
       if (card.title === "SignUp") {
-        const signUpData = {
-          role: formValuesRef.current.role,
-          name: formValuesRef.current.name,
-          email: formValuesRef.current.email,
-          password: formValuesRef.current.pass,
-          ...(formValuesRef.current.role === 'student' && {
-            institute: formValuesRef.current.institute,
-            relation: formValuesRef.current.relation,
-            enrollment_number: formValuesRef.current.enroll,
-          }),
-          ...(formValuesRef.current.role === 'faculty' && {
-            department: formValuesRef.current.department,
-            username: formValuesRef.current.username,
-          }),
-          ...(formValuesRef.current.role === 'admin' && {
-            access_code: formValuesRef.current.accessCode,
-          }),
-        };
-        const res = await signUp(signUpData);
+        const formData = new FormData();
+        formData.append('username', formValuesRef.current.email);
+        formData.append('email', formValuesRef.current.email);
+        formData.append('password', formValuesRef.current.pass);
+        formData.append('role', formValuesRef.current.role);
+        
+        await api.auth.signUp(formData);
         toast.success(`Sign Up Successful! You can now login as ${formValuesRef.current.role}`);
         setFormValues({});
         setShowSignUp(false);
@@ -265,25 +253,27 @@ export default function EnhancedLogin({ onLoginSuccess }) {
           role === 'student' ? formValuesRef.current.enroll :
           role === 'faculty' ? formValuesRef.current.username :
           formValuesRef.current.email;
+        
         const loginData = {
-          role,
-          identifier,
+          username: identifier,
           password: formValuesRef.current.pass,
         };
-        const res = await login(loginData);
-        if (res.success) {
-          localStorage.setItem('authToken', res.token);
-          localStorage.setItem('userRole', res.user.role);
-          localStorage.setItem('userData', JSON.stringify(res.user));
-          toast.success(`Welcome back, ${res.user.name || res.user.role}!`);
-          onLoginSuccess?.(res.user);
+        
+        const res = await api.auth.login(loginData);
+        if (res) {
+          const userData = res.user || { role, name: identifier };
+          localStorage.setItem('authToken', res.access || res.token);
+          localStorage.setItem('userRole', userData.role || role);
+          localStorage.setItem('userData', JSON.stringify(userData));
+          toast.success(`Welcome back, ${userData.name || userData.role}!`);
+          onLoginSuccess?.(userData);
         }
       }
     } catch (error) {
       console.error('Submission error:', error);
       toast.error(error.message || 'An error occurred. Please try again.');
     }
-  }, [login, signUp, onLoginSuccess, validateForm]);
+  }, [validateForm]);
 
   // Stable handlers for UI interactions
   const handleShowSignUp = useCallback(() => {

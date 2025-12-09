@@ -21,9 +21,11 @@ class ApiClient {
     }
 
     const url = `${this.baseURL}${endpoint}`;
+    // If body is FormData, don't set Content-Type (browser will set boundary)
+    const isFormData = options && options.body && (options.body instanceof FormData);
     const config = {
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
       ...options,
@@ -70,6 +72,14 @@ class ApiClient {
     });
   }
 
+  // Post with FormData (multipart)
+  postForm(endpoint, formData) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   put(endpoint, data) {
     return this.request(endpoint, {
       method: 'PUT',
@@ -91,33 +101,51 @@ const createRealAPI = () => {
   return {
     auth: {
       login: async (credentials) => {
-        return apiClient.post('/auth/login/', credentials);
+        const data = await apiClient.post('/login/', credentials);
+        // Support both JWT pair and single-token responses
+        if (data.access) localStorage.setItem('authToken', data.access);
+        else if (data.token) localStorage.setItem('authToken', data.token);
+        if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
+        if (data.user) localStorage.setItem('userData', JSON.stringify(data.user));
+        return data;
       },
       signUp: async (userData) => {
-        return apiClient.post('/auth/register/', userData);
+        if (userData instanceof FormData) {
+          return apiClient.postForm('/signup/', userData);
+        }
+        return apiClient.post('/signup/', userData);
       },
     },
     users: {
       getProfile: async () => {
-        return apiClient.get('/users/profile/');
+        return apiClient.get('/profile/');
       },
     },
     courses: {
       getCourses: async (filters = {}) => {
         const queryParams = new URLSearchParams(filters).toString();
-        return apiClient.get(`/courses/?${queryParams}`);
+        return apiClient.get(`/courses/${queryParams ? ('?' + queryParams) : ''}`);
+      },
+      getAssignments: async (courseId) => {
+        return apiClient.get(`/courses/${courseId}/assignments/`);
       },
     },
     assignments: {
-      getAssignments: async (filters = {}) => {
-        const queryParams = new URLSearchParams(filters).toString();
-        return apiClient.get(`/assignments/?${queryParams}`);
+      submitAssignment: async (formData) => {
+        return apiClient.postForm('/assignments/submit/', formData);
       },
     },
     analytics: {
       getDashboardStats: async () => {
-        return apiClient.get('/analytics/dashboard/');
+        return apiClient.get('/dashboard/stats/');
       },
+    },
+    ai: {
+      chatWithAI: async (payload) => apiClient.post('/ai/chat/', payload),
+      generateLearningPath: async (payload) => apiClient.post('/ai/generate-learning-path/', payload),
+      predictGrades: async () => apiClient.get('/ai/predict-grades/'),
+      analyzeWellBeing: async () => apiClient.get('/ai/analyze-well-being/'),
+      generateExamPaper: async (courseId, payload) => apiClient.post(`/ai/generate-exam-paper/${courseId}/`, payload),
     },
   };
 };
@@ -128,7 +156,10 @@ const createMockAPI = () => {
     auth: {
       login: async (credentials) => {
         console.log('Mock API: Login attempt', credentials);
-        return mockApi.login(credentials);
+        const data = await mockApi.login(credentials);
+        if (data.token) localStorage.setItem('authToken', data.token);
+        if (data.user) localStorage.setItem('userData', JSON.stringify(data.user));
+        return data;
       },
       signUp: async (userData) => {
         console.log('Mock API: Signup attempt', userData);
@@ -138,7 +169,6 @@ const createMockAPI = () => {
     users: {
       getProfile: async () => {
         console.log('Mock API: Getting user profile');
-        // Get current user from localStorage
         const userData = localStorage.getItem('userData');
         return userData ? JSON.parse(userData) : null;
       },
@@ -148,11 +178,16 @@ const createMockAPI = () => {
         console.log('Mock API: Getting courses', filters);
         return mockApi.getCourses(filters);
       },
+      getAssignments: async (courseId) => {
+        console.log('Mock API: Getting assignments for course', courseId);
+        return mockApi.getAssignments({ courseId });
+      },
     },
     assignments: {
-      getAssignments: async (filters = {}) => {
-        console.log('Mock API: Getting assignments', filters);
-        return mockApi.getAssignments(filters);
+      submitAssignment: async (formData) => {
+        console.log('Mock API: Submitting assignment (mock)', formData);
+        // Simulate success
+        return { success: true, message: 'Submission received (mock)' };
       },
     },
     analytics: {
@@ -160,6 +195,28 @@ const createMockAPI = () => {
         console.log('Mock API: Getting dashboard stats');
         const userRole = localStorage.getItem('userRole') || 'student';
         return mockApi.getDashboardStats(userRole);
+      },
+    },
+    ai: {
+      chatWithAI: async (payload) => {
+        console.log('Mock API: chatWithAI', payload);
+        return { response: `Echo: ${payload.prompt}` };
+      },
+      generateLearningPath: async (payload) => {
+        console.log('Mock API: generateLearningPath', payload);
+        return { steps: ['Learn A', 'Practice B', 'Master C'] };
+      },
+      predictGrades: async () => {
+        console.log('Mock API: predictGrades');
+        return { Math: 'A', Science: 'B+' };
+      },
+      analyzeWellBeing: async () => {
+        console.log('Mock API: analyzeWellBeing');
+        return { status: 'positive', recommendations: ['Take a break'] };
+      },
+      generateExamPaper: async (courseId, payload) => {
+        console.log('Mock API: generateExamPaper', courseId, payload);
+        return { questions: ['Q1 (mock)', 'Q2 (mock)'] };
       },
     },
     // Mock-specific methods

@@ -2,46 +2,34 @@ import { useState, useEffect } from 'react';
 import { Brain, BookOpen, Target, Clock, CheckCircle } from 'lucide-react';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import Card from '@/components/common/ui/cards/Card';
-import { useApi } from '@/contexts/ApiContext';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 
 export default function PersonalizedLearning() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
-  const { chatWithAI } = useApi();
   
   const [learningPath, setLearningPath] = useState([]);
   const [currentModule, setCurrentModule] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const learningModules = [
-    {
-      id: 1,
-      title: 'Introduction to Calculus',
-      description: 'Fundamental concepts of differential calculus',
-      duration: '2 hours',
-      difficulty: 'Beginner',
-      progress: 75,
-      resources: ['Video Lectures', 'Practice Problems', 'AI Tutor'],
-      prerequisites: ['Basic Algebra']
-    },
-    {
-      id: 2,
-      title: 'Advanced Programming Concepts',
-      description: 'Object-oriented programming and data structures',
-      duration: '4 hours',
-      difficulty: 'Intermediate',
-      progress: 30,
-      resources: ['Interactive Coding', 'Code Reviews', 'AI Assistant'],
-      prerequisites: ['Programming Basics']
-    }
-  ];
+  useEffect(() => {
+    fetchLearningPath();
+  }, []);
 
-  const askAI = async (question) => {
+  const fetchLearningPath = async () => {
     try {
-      const response = await chatWithAI(question, { context: 'learning' });
-      return response;
+      const response = await api.ai.generateLearningPath({});
+      const pathData = response.path_data || { steps: [] };
+      const steps = pathData.steps || [];
+      setLearningPath(steps);
+      setProgress(Math.round((steps.length / 10) * 100));
+      setLoading(false);
     } catch (error) {
-      console.error('AI Learning Assistant error:', error);
+      console.error('Error fetching learning path:', error);
+      toast.error('Failed to load learning path');
+      setLoading(false);
     }
   };
 
