@@ -9,6 +9,7 @@ import Skeleton from "@/components/common/ui/utils/Skeleton";
 import { toast } from "react-toastify";
 import api from "@/services/api";
 import React from "react";
+import { useApi } from '@/contexts/ApiContext';
 // Move CustomInput and CustomSelect outside the main component to prevent recreation
 const CustomInput = React.memo(({
   id,
@@ -236,12 +237,35 @@ export default function EnhancedLogin({ onLoginSuccess }) {
 
     try {
       if (card.title === "SignUp") {
+        // Basic client-side validation
+        const name = (formValuesRef.current.name || '').trim();
+        const email = (formValuesRef.current.email || '').trim();
+        const password = formValuesRef.current.pass;
+        const role = formValuesRef.current.role || 'student';
+
+        if (!name || !email || !password || !role) {
+          toast.error('Please fill required signup fields');
+          return;
+        }
+
+        // Split full name into first/last
+        const [first_name, ...rest] = name.split(' ');
+        const last_name = rest.join(' ');
+
         const formData = new FormData();
-        formData.append('username', formValuesRef.current.email);
-        formData.append('email', formValuesRef.current.email);
-        formData.append('password', formValuesRef.current.pass);
-        formData.append('role', formValuesRef.current.role);
-        
+        // username should be unique; derive from email or name
+        const username = (formValuesRef.current.username && formValuesRef.current.username.trim()) || email.split('@')[0];
+        formData.append('username', username);
+        formData.append('first_name', first_name || '');
+        formData.append('last_name', last_name || '');
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('role', role);
+        // Optional profile picture if provided
+        if (formValuesRef.current.profile_pic instanceof File) {
+          formData.append('profile_pic', formValuesRef.current.profile_pic);
+        }
+
         await api.auth.signUp(formData);
         toast.success(`Sign Up Successful! You can now login as ${formValuesRef.current.role}`);
         setFormValues({});

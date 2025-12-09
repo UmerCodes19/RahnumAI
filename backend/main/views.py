@@ -5,6 +5,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import transaction
 
 from .models import (
     UserProfile, Course, Assignment, Submission, AIInteraction,
@@ -21,18 +23,59 @@ from .serializers import (
 @permission_classes([AllowAny])
 @parser_classes([MultiPartParser, FormParser])
 def signUp(request):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.save()
-        user.set_password(request.data.get('password'))
-        user.save()
-        UserProfile.objects.create(
-            user=user, 
-            role=request.data.get('role', 'student'),
-            profile_pic=request.data.get('profile_pic')
-        )
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Extract and validate required fields
+    username = request.data.get('username') or (request.data.get('email') and request.data.get('email').split('@')[0])
+    email = request.data.get('email')
+    password = request.data.get('password') or request.data.get('pass')
+    first_name = request.data.get('first_name') or request.data.get('name')
+    last_name = request.data.get('last_name', '')
+
+    if not username or not email or not password:
+        return Response({'detail': 'username, email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({'username': ['A user with that username already exists.']}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Normalize role values coming from frontend to match UserProfile choices
+    role = request.data.get('role', 'student')
+    if role == 'faculty' or role == 'admin':
+        role_db = 'teacher'
+    else:
+        role_db = role
+
+    profile_pic = None
+    # File uploads come in request.FILES when multipart/form-data
+    if request.FILES and 'profile_pic' in request.FILES:
+        profile_pic = request.FILES.get('profile_pic')
+
+    try:
+        with transaction.atomic():
+            user = User(username=username, email=email, first_name=first_name or '', last_name=last_name or '')
+            user.set_password(password)
+            user.save()
+
+            UserProfile.objects.create(
+                user=user,
+                role=role_db,
+                profile_pic=profile_pic
+            )
+
+            # Issue JWT tokens so frontend can authenticate immediately
+            refresh = RefreshToken.for_user(user)
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            }
+            return Response({
+                'user': user_data,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(TokenObtainPairView):
     permission_classes = [AllowAny]
@@ -40,7 +83,10 @@ class LoginView(TokenObtainPairView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getProfile(request):
-    user_profile = UserProfile.objects.get(user=request.user)
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
     serializer = UserProfileSerializer(user_profile)
     return Response(serializer.data)
 
@@ -131,7 +177,11 @@ def analyzeWellBeing(request):
 @permission_classes([IsAuthenticated])
 def generateExamPaper(request, course_id):
     # Dummy response - replace with actual AI logic
-    course = Course.objects.get(pk=course_id)
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
+        return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+
     paper_data = {'questions': ['Question 1', 'Question 2']}
     exam_paper = ExamPaper.objects.create(course=course, paper_data=paper_data)
     serializer = ExamPaperSerializer(exam_paper)

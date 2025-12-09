@@ -1,11 +1,12 @@
 import mockApi from './mockApi';
 
 // Check if we're in development mode and should use mock data
-const USE_MOCK_API = !import.meta.env.VITE_API_BASE_URL || 
-                     import.meta.env.VITE_USE_MOCK_API === 'true' ||
-                     process.env.NODE_ENV === 'development';
+  // const USE_MOCK_API = !import.meta.env.VITE_API_BASE_URL || 
+  //                      import.meta.env.VITE_USE_MOCK_API === 'true' ||
+  //                      process.env.NODE_ENV === 'development';
 
 // Base API configuration
+const USE_MOCK_API = false;
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 // Generic API client for real backend
@@ -32,9 +33,22 @@ class ApiClient {
     };
 
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken1');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Debugging: log whether token is present and partially mask it
+    try {
+      const authHeader = config.headers && config.headers.Authorization;
+      if (authHeader) {
+        const masked = authHeader.length > 12 ? authHeader.slice(0, 12) + '...' : authHeader;
+        console.debug('API auth header present:', masked);
+      } else {
+        console.debug('API auth header not present');
+      }
+    } catch (err) {
+      // ignore logging errors
     }
 
     try {
@@ -51,7 +65,14 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || data.detail || 'API request failed');
+        // Log full response for easier debugging
+        console.error('API request failed', { url, status: response.status, data });
+        // Throw a detailed error so callers can inspect `error.message`
+        const message = (data && (data.detail || data.message)) || JSON.stringify(data) || response.statusText;
+        const err = new Error(message || 'API request failed');
+        err.status = response.status;
+        err.data = data;
+        throw err;
       }
 
       return data;
@@ -103,17 +124,34 @@ const createRealAPI = () => {
       login: async (credentials) => {
         const data = await apiClient.post('/login/', credentials);
         // Support both JWT pair and single-token responses
-        if (data.access) localStorage.setItem('authToken', data.access);
+        console.log(data.access);
+        console.log(data.token);
+        if (data.access) localStorage.setItem('authToken1', data.access);
         else if (data.token) localStorage.setItem('authToken', data.token);
         if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
         if (data.user) localStorage.setItem('userData', JSON.stringify(data.user));
         return data;
       },
       signUp: async (userData) => {
+        let data;
         if (userData instanceof FormData) {
-          return apiClient.postForm('/signup/', userData);
+          data = await apiClient.postForm('/signup/', userData);
+        } else {
+          data = await apiClient.post('/signup/', userData);
         }
-        return apiClient.post('/signup/', userData);
+
+        // Persist tokens and user data if returned by backend
+        if (data) {
+          if (data.access) localStorage.setItem('authToken', data.access);
+          else if (data.token) localStorage.setItem('authToken', data.token);
+          if (data.refresh) localStorage.setItem('refreshToken', data.refresh);
+          if (data.user) {
+            localStorage.setItem('userData', JSON.stringify(data.user));
+            if (data.user.role) localStorage.setItem('userRole', data.user.role);
+          }
+        }
+
+        return data;
       },
     },
     users: {
@@ -157,8 +195,8 @@ const createMockAPI = () => {
       login: async (credentials) => {
         console.log('Mock API: Login attempt', credentials);
         const data = await mockApi.login(credentials);
-        if (data.token) localStorage.setItem('authToken', data.token);
-        if (data.user) localStorage.setItem('userData', JSON.stringify(data.user));
+        if (data.token) localStorage.setItem('authToken1', data.token);
+        if (data.user) localStorage.setItem('userData1', JSON.stringify(data.user));
         return data;
       },
       signUp: async (userData) => {
