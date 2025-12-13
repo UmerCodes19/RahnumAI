@@ -1,0 +1,14 @@
+# Ignore backend uploaded media files
+backend/media/
+
+# Ignore DB and environment artifacts (commonly excluded)
+db.sqlite3
+
+# Node / frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+
+# Python environment
+venv/
+__pycache__/
+*.pyc
