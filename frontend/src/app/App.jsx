@@ -22,7 +22,7 @@ import Leaderboard from '../components/features/dashboard/student/Leaderboard';
 import FacultyHome from "@/components/features/dashboard/faculty/FacultyHome";
 import FacultyStudents from "@/components/features/dashboard/faculty/FacultyStudents";
 import FacultyAttendance from "@/components/features/dashboard/faculty/FacultyAttendance";
-import FacultyAnalytics from "@/components/features/dashboard/faculty/FacultyAnalytics";
+import FacultyAssignment from "@/components/features/dashboard/faculty/FacultyAssignment";
 import ClassPerformance from '@/components/features/dashboard/faculty/FacultyClassPerformance';
 import FacultyMaterials from '@/components/features/dashboard/faculty/FacultyMaterials';
 
@@ -199,7 +199,7 @@ function AppContent() {
               <Route path="students" element={<FacultyStudents />} />
               <Route path="attendance" element={<FacultyAttendance />} />
               <Route path="materials" element={<FacultyMaterials />} />
-              <Route path="analytics" element={<FacultyAnalytics />} />
+              <Route path="analytics" element={<FacultyAssignment />} />
               <Route path="class-performance" element={<ClassPerformance />} />
 
               {/* Admin Routes */}

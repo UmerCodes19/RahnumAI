@@ -13,13 +13,13 @@ from .models import (
     UserProfile, Course, Enrollment, Assignment, Submission, AIInteraction,
     LearningPath, GradePrediction, WellBeing, ExamPaper
 )
-from .models import CourseMaterial, AttendanceSession, AttendanceRecord
+from .models import CourseMaterial, AttendanceSession, AttendanceRecord, StudentPerformance
 from .serializers import (
     UserSerializer, UserProfileSerializer, CourseSerializer, AssignmentSerializer,
     SubmissionSerializer, AIInteractionSerializer, LearningPathSerializer,
     GradePredictionSerializer, WellBeingSerializer, ExamPaperSerializer
 )
-from .serializers import CourseMaterialSerializer, AttendanceSessionSerializer, AttendanceRecordSerializer
+from .serializers import CourseMaterialSerializer, AttendanceSessionSerializer, AttendanceRecordSerializer, StudentPerformanceSerializer
 
 import joblib
 import json
@@ -223,6 +223,71 @@ def courseStudents(request, course_id):
     return Response(serializer.data)
 
 
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def coursePerformance(request, course_id):
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
+        return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        performances = StudentPerformance.objects.filter(course=course).select_related('student', 'updated_by')
+        serializer = StudentPerformanceSerializer(performances, many=True)
+        # Ensure we also provide students list (with defaults when performance missing)
+        students = course.students.all()
+        students_serializer = UserSerializer(students, many=True)
+        # build a student->performance map for missing performance entries
+        perf_map = {p['student']['id']: p for p in serializer.data}
+        combined = []
+        for s in students_serializer.data:
+            p = perf_map.get(s['id'])
+            if p:
+                combined.append(p)
+            else:
+                combined.append({'id': None, 'course': course.id, 'student': s, 'score': None, 'traits': {}, 'remark': '', 'updated_by': None, 'created_at': None, 'updated_at': None})
+        # calculate overall average score
+        scores = [p.score for p in performances if p.score is not None]
+        overall_avg = sum(scores) / len(scores) if scores else None
+        return Response({'performances': combined, 'overall_avg': overall_avg})
+
+    # POST (teacher/admin only) - allows creating/updating a student's performance
+    if not _is_course_teacher(request.user, course):
+        return Response({'detail': 'Not allowed to assign performance for this course.'}, status=status.HTTP_403_FORBIDDEN)
+
+    payload = request.data
+    # Support both list payload and single entry
+    entries = payload if isinstance(payload, list) else [payload]
+    created_or_updated = []
+    try:
+        with transaction.atomic():
+            for e in entries:
+                sid = e.get('student_id') or (e.get('student') and e.get('student').get('id'))
+                score = e.get('score')
+                remark = e.get('remark', '')
+                if not sid:
+                    continue
+                try:
+                    user = User.objects.get(pk=int(sid))
+                except Exception:
+                    continue
+                # Only allow if user is enrolled in course
+                if not course.students.filter(pk=user.pk).exists():
+                    continue
+                # Accept optional traits in payload and save them as JSON
+                traits_val = e.get('traits') if isinstance(e, dict) else None
+                defaults = {'score': score, 'remark': remark, 'updated_by': request.user}
+                if traits_val is not None:
+                    defaults['traits'] = traits_val
+                perf, created = StudentPerformance.objects.update_or_create(course=course, student=user, defaults=defaults)
+                created_or_updated.append(perf)
+        serializer = StudentPerformanceSerializer(created_or_updated, many=True)
+        return Response({'updated': serializer.data}, status=status.HTTP_201_CREATED)
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def courseAttendance(request, course_id):
@@ -342,11 +407,45 @@ def courses(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Assignment Management
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def getAssignments(request, course_id):
+    try:
+        course = Course.objects.get(pk=course_id)
+    except Course.DoesNotExist:
+        return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        assignments = Assignment.objects.filter(course=course).order_by('-created_at')
+        serializer = AssignmentSerializer(assignments, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    # POST - create a new assignment (teacher only)
+    if not _is_course_teacher(request.user, course):
+        return Response({'detail': 'Not allowed to create assignments for this course.'}, status=status.HTTP_403_FORBIDDEN)
+    data = request.data.copy()
+    # Use serializer to validate
+    serializer = AssignmentSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save(course=course, created_by=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def getAssignments(request, course_id):
-    assignments = Assignment.objects.filter(course_id=course_id)
-    serializer = AssignmentSerializer(assignments, many=True)
+def getAssignmentSubmissions(request, assignment_id):
+    try:
+        assignment = Assignment.objects.get(pk=assignment_id)
+    except Assignment.DoesNotExist:
+        return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+    # Teachers and staff may list all submissions. Students may view only their own submissions.
+    if _is_course_teacher(request.user, assignment.course) or request.user.is_staff:
+        submissions = assignment.submissions.all().select_related('student')
+    else:
+        # Non-teacher non-staff (student): allow reading only their own submission(s)
+        submissions = assignment.submissions.filter(student=request.user).select_related('student')
+    serializer = SubmissionSerializer(submissions, many=True)
     return Response(serializer.data)
 
 @api_view(['POST'])
@@ -379,6 +478,23 @@ def enrollCourses(request):
 
     serializer = CourseSerializer(enrolled_courses, many=True, context={'request': request})
     return Response({'enrolled': serializer.data})
+
+
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def updateSubmission(request, submission_id):
+    try:
+        submission = Submission.objects.get(pk=submission_id)
+    except Submission.DoesNotExist:
+        return Response({'detail': 'Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
+    # Only teacher of the course or staff may update submission (e.g., grading)
+    if not _is_course_teacher(request.user, submission.assignment.course) and not request.user.is_staff:
+        return Response({'detail': 'Not allowed to update this submission.'}, status=status.HTTP_403_FORBIDDEN)
+    serializer = SubmissionSerializer(submission, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

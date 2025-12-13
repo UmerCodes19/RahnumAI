@@ -52,7 +52,7 @@ export default function Dashboard({ onLogout }) {
     ],
     faculty: [
       { icon: BookOpen, label: 'My Classes', path: '/dashboard' },
-      { icon: BarChart3, label: 'Analytics', path: '/dashboard/analytics' },
+      { icon: FileText, label: 'Assignments', path: '/dashboard/analytics' },
       { icon: TrendingUp, label: 'Class Performance', path: '/dashboard/class-performance' },
       { icon: FileText, label: 'Paper Generator', path: '/dashboard/generator' },
       { icon: Users, label: 'Students', path: '/dashboard/students' },

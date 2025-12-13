@@ -40,6 +40,9 @@ class Assignment(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     due_date = models.DateTimeField()
+    file = models.FileField(upload_to='assignments/', null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_assignments')
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -136,3 +139,20 @@ class AttendanceRecord(models.Model):
 
     def __str__(self):
         return f'{self.student.username} - {self.status} on {self.session.session_date} for {self.session.course.title}'
+
+
+class StudentPerformance(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='performances')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='performances')
+    score = models.FloatField(null=True, blank=True)
+    traits = models.JSONField(null=True, blank=True, default=dict)
+    remark = models.CharField(max_length=255, null=True, blank=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_performances')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('course', 'student')
+
+    def __str__(self):
+        return f'Performance {self.student.username} in {self.course.title}: {self.score}'

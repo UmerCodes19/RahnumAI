@@ -20,7 +20,7 @@ export default function FacultyHome() {
   const quickActions = [
     { icon: Upload, label: 'Upload Material', description: 'Share course materials', color: 'blue' },
     { icon: FileText, label: 'Create Assignment', description: 'New learning material', color: 'green' },
-    { icon: BarChart3, label: 'View Analytics', description: 'Student performance', color: 'purple' },
+    { icon: FileText, label: 'Manage Assignments', description: 'Class assignments', color: 'purple' },
     { icon: MessageSquare, label: 'Post Announcement', description: 'Class updates', color: 'orange' }
   ];
 

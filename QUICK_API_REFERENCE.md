@@ -130,12 +130,13 @@ const responseSingle = await api.courses.enrollCourse(courseId);
 ### Submit Assignment
 ```javascript
 const formData = new FormData();
-formData.append('assignment_id', assignmentId);
+// Use `assignment` to specify assignment id in FormData. Backwards compatible code may use `assignment_id`.
+formData.append('assignment', assignmentId);
 formData.append('content', 'Assignment content');
-formData.append('submission_file', fileInput.files[0]); // Optional
+formData.append('content', fileInput.files[0]); // Optional file upload (use 'content' field)
 
 const response = await api.assignments.submitAssignment(formData);
-// Response: { id, assignment_id, student_id, content, submitted_at, ... }
+// Response: { id, assignment, student: { id, username, ... }, content, submitted_at, ... }
 ```
 
 ---

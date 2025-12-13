@@ -5,6 +5,7 @@ from .models import (
     LearningPath, GradePrediction, WellBeing, ExamPaper
 )
 from .models import CourseMaterial, AttendanceSession, AttendanceRecord
+from .models import StudentPerformance
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,11 +51,16 @@ class CourseSerializer(serializers.ModelSerializer):
             return 0
 
 class AssignmentSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    file = serializers.FileField(read_only=False, required=False)
     class Meta:
         model = Assignment
         fields = '__all__'
 
 class SubmissionSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+    # Make 'content' writable so file uploads are accepted during submission
+    content = serializers.FileField(required=False, allow_null=True)
     class Meta:
         model = Submission
         fields = ('id', 'assignment', 'student', 'submitted_at', 'content', 'grade')
@@ -109,3 +115,13 @@ class AttendanceSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AttendanceSession
         fields = ('id', 'course', 'session_date', 'created_by', 'created_at', 'records')
+
+
+class StudentPerformanceSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+    updated_by = UserSerializer(read_only=True)
+    traits = serializers.JSONField(required=False)
+
+    class Meta:
+        model = StudentPerformance
+        fields = ('id', 'course', 'student', 'score', 'traits', 'remark', 'updated_by', 'created_at', 'updated_at')

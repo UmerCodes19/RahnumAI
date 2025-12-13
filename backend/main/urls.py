@@ -15,6 +15,8 @@ urlpatterns = [
 
     # Assignment Management
     path('courses/<int:course_id>/assignments/', views.getAssignments, name='get-assignments'),
+    path('assignments/<int:assignment_id>/submissions/', views.getAssignmentSubmissions, name='get-assignment-submissions'),
+    path('assignments/submissions/<int:submission_id>/', views.updateSubmission, name='update-submission'),
     path('assignments/submit/', views.submitAssignment, name='submit-assignment'),
 
     # Dashboard
@@ -34,4 +36,5 @@ urlpatterns = [
     path('courses/<int:course_id>/materials/', views.courseMaterials, name='course-materials'),
     path('courses/<int:course_id>/students/', views.courseStudents, name='course-students'),
     path('courses/<int:course_id>/attendance/', views.courseAttendance, name='course-attendance'),
+    path('courses/<int:course_id>/performance/', views.coursePerformance, name='course-performance'),
 ]

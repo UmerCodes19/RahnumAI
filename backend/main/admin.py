@@ -27,3 +27,5 @@ admin.site.register(ExamPaper)
 admin.site.register(CourseMaterial)
 admin.site.register(AttendanceSession)
 admin.site.register(AttendanceRecord)
+from .models import StudentPerformance
+admin.site.register(StudentPerformance)

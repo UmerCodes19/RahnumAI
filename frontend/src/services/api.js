@@ -372,8 +372,20 @@ const createRealAPI = () => {
         formData.append('course', courseId);
         return apiClient.postForm(`/courses/${courseId}/materials/`, formData);
       },
+      createAssignment: async (courseId, formData) => {
+        // Expects FormData (title, description, due_date, file)
+        return apiClient.postForm(`/courses/${courseId}/assignments/`, formData);
+      },
       getStudents: async (courseId) => {
+        console.debug('API: GET /courses/' + courseId + '/students/');
         return apiClient.get(`/courses/${courseId}/students/`);
+      },
+      getPerformance: async (courseId) => {
+        console.debug('API: GET /courses/' + courseId + '/performance/');
+        return apiClient.get(`/courses/${courseId}/performance/`);
+      },
+      assignPerformance: async (courseId, payload) => {
+        return apiClient.post(`/courses/${courseId}/performance/`, payload);
       },
       getAttendance: async (courseId, params = {}) => {
         const qs = Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : '';
@@ -392,6 +404,13 @@ const createRealAPI = () => {
     assignments: {
       submitAssignment: async (formData) => {
         return apiClient.postForm('/assignments/submit/', formData);
+      },
+      getSubmissions: async (assignmentId) => {
+        return apiClient.get(`/assignments/${assignmentId}/submissions/`);
+      },
+      updateSubmission: async (submissionId, payload) => {
+        // PATCH endpoint to update submission (e.g., grade)
+        return apiClient.put(`/assignments/submissions/${submissionId}/`, payload);
       },
     },
     analytics: {
@@ -461,6 +480,22 @@ const createMockAPI = () => {
         console.log('Mock API: Getting assignments for course', courseId);
         return mockApi.getAssignments({ courseId });
       },
+      createAssignment: async (courseId, formData) => {
+        console.log('Mock API: Creating assignment for course', courseId, formData);
+        return mockApi.createAssignment(courseId, formData);
+      },
+      getStudents: async (courseId) => {
+        console.log('Mock API: Getting students for course', courseId);
+        return mockApi.getStudents(courseId);
+      },
+      getPerformance: async (courseId) => {
+        console.log('Mock API: Getting performance for course', courseId);
+        return mockApi.getPerformance(courseId);
+      },
+      assignPerformance: async (courseId, payload) => {
+        console.log('Mock API: assignPerformance', courseId, payload);
+        return mockApi.assignPerformance(courseId, payload);
+      },
       enroll: async (courseIds = []) => {
         console.log('Mock API: enrolling in courses', courseIds);
         return mockApi.enroll(courseIds);
@@ -473,8 +508,15 @@ const createMockAPI = () => {
     assignments: {
       submitAssignment: async (formData) => {
         console.log('Mock API: Submitting assignment (mock)', formData);
-        // Simulate success
-        return { success: true, message: 'Submission received (mock)' };
+        return mockApi.submitAssignment(formData);
+      },
+      getSubmissions: async (assignmentId) => {
+        console.log('Mock API: getSubmissions for assignment', assignmentId);
+        return mockApi.getAssignmentSubmissions(assignmentId);
+      },
+      updateSubmission: async (submissionId, payload) => {
+        console.log('Mock API: updateSubmission', submissionId, payload);
+        return mockApi.updateSubmission(submissionId, payload);
       },
     },
     analytics: {

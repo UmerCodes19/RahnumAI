@@ -4,6 +4,9 @@ class MockApiService {
     this.delay = 1000; // Simulate network delay
     this.users = this.loadUsers();
     this.enrollments = this.loadEnrollments();
+    this.performances = this.loadPerformances();
+    this.assignmentsData = this.loadAssignments();
+    this.submissions = this.loadSubmissions();
   }
 
   loadUsers() {
@@ -63,8 +66,45 @@ class MockApiService {
     return {};
   }
 
+  loadPerformances() {
+    const stored = localStorage.getItem('mockPerformances');
+    if (stored) return JSON.parse(stored);
+    // structure: { courseId: [{ student_id, score, remark, updated_by, created_at, updated_at }, ...] }
+    return {};
+  }
+
+  savePerformances() {
+    localStorage.setItem('mockPerformances', JSON.stringify(this.performances));
+  }
+
   saveEnrollments() {
     localStorage.setItem('mockEnrollments', JSON.stringify(this.enrollments));
+  }
+
+  // Persistent assignments in localStorage
+  loadAssignments() {
+    const stored = localStorage.getItem('mockAssignments');
+    if (stored) return JSON.parse(stored);
+    const assignments = {};
+    localStorage.setItem('mockAssignments', JSON.stringify(assignments));
+    return assignments;
+  }
+
+  saveAssignments() {
+    localStorage.setItem('mockAssignments', JSON.stringify(this.assignmentsData));
+  }
+
+  // Persistent submissions in localStorage (organized by assignment id)
+  loadSubmissions() {
+    const stored = localStorage.getItem('mockSubmissions');
+    if (stored) return JSON.parse(stored);
+    const submissions = {};
+    localStorage.setItem('mockSubmissions', JSON.stringify(submissions));
+    return submissions;
+  }
+
+  saveSubmissions() {
+    localStorage.setItem('mockSubmissions', JSON.stringify(this.submissions));
   }
 
   // Simulate API delay
@@ -123,9 +163,10 @@ class MockApiService {
   }
 
   // Mock data for dashboard
-  async getDashboardStats(role) {
+  async getDashboardStats(role = 'student') {
     await this.simulateDelay();
-    
+
+    // Simple mocked stats per role
     const stats = {
       student: {
         active_courses: 5,
@@ -134,16 +175,8 @@ class MockApiService {
         grade_trend: '+2% from last month',
         ai_sessions: 12,
         upcoming_schedule: [
-          {
-            subject: 'Mathematics',
-            time: 'Tomorrow, 10:00 AM',
-            type: 'Live Class'
-          },
-          {
-            subject: 'Science Lab',
-            time: 'Nov 21, 2:00 PM',
-            type: 'Practical'
-          }
+          { subject: 'Mathematics', time: 'Tomorrow, 10:00 AM', type: 'Live Class' },
+          { subject: 'Science Lab', time: 'Nov 21, 2:00 PM', type: 'Practical' }
         ]
       },
       faculty: {
@@ -151,12 +184,8 @@ class MockApiService {
         assignments_to_grade: 8,
         student_performance: 84,
         upcoming_sessions: 6,
-        recent_activities: [
-          {
-            action: 'Graded Math Quiz',
-            time: '2 hours ago',
-            class: 'MATH101'
-          }
+        recent_activity: [
+          { action: 'Graded Math Quiz', time: '2 hours ago', class: 'MATH101' }
         ]
       },
       admin: {
@@ -170,6 +199,50 @@ class MockApiService {
 
     return stats[role] || stats.student;
   }
+
+  async createAssignment(courseId, data) {
+    await this.simulateDelay();
+    if (!this.assignmentsData[courseId]) this.assignmentsData[courseId] = [];
+    const now = new Date().toISOString();
+    const newAssignment = {
+      id: Date.now(),
+      course: courseId,
+      title: data.get ? data.get('title') : (data.title || 'New Assignment'),
+      description: data.get ? data.get('description') : (data.description || ''),
+      due_date: data.get ? data.get('due_date') : (data.due_date || null),
+      file: data.get ? (data.get('file') ? `mock://${Date.now()}-file` : null) : null,
+      created_by: { id: 1, username: 'teacher_1' },
+      created_at: now,
+    };
+    this.assignmentsData[courseId].push(newAssignment);
+    this.saveAssignments();
+    return newAssignment;
+  }
+
+  async getAssignmentSubmissions(assignmentId) {
+    await this.simulateDelay();
+    // normalize key to string
+    const aid = String(assignmentId);
+    return this.submissions[aid] || [];
+  }
+
+  async updateSubmission(submissionId, payload) {
+    await this.simulateDelay();
+    // payload may include { grade: 95 }
+    for (const aid of Object.keys(this.submissions)) {
+      const list = this.submissions[aid] || [];
+      const idx = list.findIndex(s => String(s.id) === String(submissionId) || s.id === submissionId);
+      if (idx !== -1) {
+        const existing = list[idx];
+        const updated = { ...existing, ...payload };
+        this.submissions[aid][idx] = updated;
+        this.saveSubmissions();
+        return updated;
+      }
+    }
+    throw new Error('Submission not found');
+  }
+
 
   // Mock courses data
   async getCourses(filters = {}) {
@@ -269,8 +342,15 @@ class MockApiService {
   // Mock assignments data
   async getAssignments(filters = {}) {
     await this.simulateDelay();
-    
-    const assignments = [
+
+    // Support filters.courseId (or courseId) to retrieve stored assignments for a course
+    const courseId = filters && (filters.courseId || filters.course || null);
+    if (courseId && this.assignmentsData[courseId]) {
+      return this.assignmentsData[courseId];
+    }
+
+    // Fallback sample assignments
+    const sampleAssignments = [
       {
         id: 1,
         title: 'Math Problem Set',
@@ -296,7 +376,7 @@ class MockApiService {
       }
     ];
 
-    return assignments;
+    return sampleAssignments;
   }
 
   async getStudents(courseId) {
@@ -305,6 +385,48 @@ class MockApiService {
       { id: 1, username: 'john_student', email: 'john@student.edu' },
       { id: 2, username: 'sarah_student', email: 'sarah@student.edu' }
     ];
+  }
+
+  async getPerformance(courseId) {
+    await this.simulateDelay();
+    const perfList = (this.performances[courseId] || []).map(p => ({
+      id: p.id || null,
+      course: courseId,
+      student: { id: p.student_id, username: `student_${p.student_id}` },
+      score: p.score,
+      remark: p.remark || '',
+      traits: p.traits || {},
+      updated_by: p.updated_by ? { id: p.updated_by, username: `teacher_${p.updated_by}` } : null,
+      created_at: p.created_at || new Date().toISOString(),
+      updated_at: p.updated_at || new Date().toISOString(),
+    }));
+    const scores = perfList.filter(p => p.score != null).map(p => p.score);
+    const overall_avg = scores.length ? scores.reduce((a,b)=>a+b,0) / scores.length : null;
+    return { performances: perfList, overall_avg };
+  }
+
+  async assignPerformance(courseId, payload) {
+    await this.simulateDelay();
+    const currentUser = JSON.parse(localStorage.getItem('userData') || '{}');
+    const now = new Date().toISOString();
+    const entries = Array.isArray(payload) ? payload : [payload];
+    if (!this.performances[courseId]) this.performances[courseId] = [];
+    entries.forEach(e => {
+      const sid = e.student_id || (e.student && e.student.id);
+      if (!sid) return;
+      const existing = this.performances[courseId].find(p => p.student_id == sid);
+      if (existing) {
+        existing.score = e.score;
+        existing.remark = e.remark || existing.remark;
+        existing.updated_by = currentUser.id || existing.updated_by;
+        existing.updated_at = now;
+        if (e.traits && typeof e.traits === 'object') existing.traits = e.traits;
+      } else {
+        this.performances[courseId].push({ id: Date.now(), student_id: sid, score: e.score, remark: e.remark || '', updated_by: currentUser.id || null, traits: e.traits || {}, created_at: now, updated_at: now });
+      }
+    });
+    this.savePerformances();
+    return { success: true };
   }
 
   async getAttendance(courseId, params = {}) {
@@ -407,17 +529,42 @@ class MockApiService {
   async submitAssignment(formData) {
     await this.simulateDelay();
     // Extract data from FormData
-    const assignment_id = formData.get('assignment_id');
-    const content = formData.get('content');
-    
-    return {
+    const assignment_id = formData.get('assignment_id') || formData.get('assignment');
+    const contentRaw = formData.get('content');
+    // If the content is a File, convert to a mock URL
+    let content;
+    if (contentRaw instanceof File || (contentRaw && contentRaw.name)) {
+      content = `mock://submission-${Date.now()}-${(contentRaw.name || 'file')}`;
+    } else {
+      content = contentRaw;
+    }
+    // Try to use currently logged-in user from localStorage if present
+    let sid = 1;
+    let username = `student_${sid}`;
+    try {
+      const saved = JSON.parse(localStorage.getItem('userData') || '{}');
+      if (saved && saved.id) {
+        sid = saved.id;
+        username = saved.username || saved.name || `student_${sid}`;
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+    const user = { id: sid, username };
+    const newSubmission = {
       id: Date.now(),
-      assignment_id: assignment_id,
-      student_id: 1,
+      assignment: Number(assignment_id),
+      student: user,
       content: content || 'Submission received',
       submitted_at: new Date().toISOString(),
+      grade: null,
       status: 'submitted'
     };
+    const key = String(newSubmission.assignment);
+    if (!this.submissions[key]) this.submissions[key] = [];
+    this.submissions[key].push(newSubmission);
+    this.saveSubmissions();
+    return newSubmission;
   }
 }
 
