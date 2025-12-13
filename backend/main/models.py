@@ -17,6 +17,8 @@ class Course(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_courses')
+    # Explicit association for the teacher who owns/takes the course
+    teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses_taught')
     students = models.ManyToManyField(User, through='Enrollment', related_name='enrolled_courses')
 
     def __str__(self):
@@ -92,3 +94,45 @@ class ExamPaper(models.Model):
 
     def __str__(self):
         return f'Exam Paper for {self.course.title}'
+
+
+class CourseMaterial(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='materials')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    file = models.FileField(upload_to='course_materials/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title or f'Material for {self.course.title}'
+
+
+class AttendanceSession(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='attendance_sessions')
+    session_date = models.DateField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Attendance {self.course.title} @ {self.session_date}'
+
+
+class AttendanceRecord(models.Model):
+    STATUS_CHOICES = (
+        ('present', 'Present'),
+        ('absent', 'Absent'),
+        ('late', 'Late'),
+        ('excused', 'Excused'),
+    )
+    session = models.ForeignKey(AttendanceSession, on_delete=models.CASCADE, related_name='records')
+    student = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    remark = models.CharField(max_length=255, blank=True, null=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('session', 'student')
+
+    def __str__(self):
+        return f'{self.student.username} - {self.status} on {self.session.session_date} for {self.session.course.title}'

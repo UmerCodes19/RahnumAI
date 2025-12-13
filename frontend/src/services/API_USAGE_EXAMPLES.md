@@ -79,6 +79,15 @@ const assignments = await api.courses.getAssignments(courseId);
 // Response: [{ id, title, course, dueDate, ... }]
 ```
 
+### Enroll in Courses
+```javascript
+// Enroll current user in a list of courses
+const response = await api.courses.enroll([1, 2, 3]);
+
+// Or enroll in a single course
+const responseSingle = await api.courses.enrollCourse(courseId);
+```
+
 ## Assignment APIs
 
 ### Submit Assignment
@@ -137,7 +146,14 @@ const response = await api.ai.generateLearningPath({
 ### Predict Grades
 ```javascript
 // Get AI-predicted grades based on performance
-const response = await api.ai.predictGrades();
+// You can pass a feature payload to predict grades
+const response = await api.ai.predictGrades({
+  attendance: 0.92,
+  avg_score: 78,
+  assignments_completed: 0.85,
+  participation: 0.6,
+  homework_completion: 0.7
+});
 
 // Response: 
 // { 
@@ -150,8 +166,8 @@ const response = await api.ai.predictGrades();
 
 ### Analyze Well-Being
 ```javascript
-// Get AI analysis of student well-being
-const response = await api.ai.analyzeWellBeing();
+// Get AI analysis of student well-being (send text for analysis)
+const response = await api.ai.analyzeWellBeing('I have been sleeping poorly and feeling overwhelmed by studies');
 
 // Response:
 // {
@@ -199,6 +215,30 @@ try {
   console.error('Login failed:', error.message);
   // Show error to user
 }
+```
+
+## Token Refresh Behavior
+
+The frontend now automatically attempts to refresh the access token using the `refreshToken` stored in `localStorage` when a 401 (Unauthorized) response is returned. If refresh succeeds, the original request is retried with the new token. If refresh fails, tokens are cleared and the user should be redirected to login.
+
+Note: ensure the backend is configured with the refresh endpoint (`/api/token/refresh/`).
+
+You can also manually trigger a refresh (useful in dev):
+```javascript
+await api.auth.forceRefresh(); // returns { refreshed: true }
+```
+
+To sign out and clear scheduled refresh:
+```javascript
+await api.auth.logout();
+```
+
+### AI Models Status
+```javascript
+// Check which ML models are currently loaded on backend
+// This is read-only and useful for confirming that models were loaded from train_ML_Model/models
+const status = await api.ai.modelsStatus();
+// Example response: { knn: true, random_forest: true, nb_model: true, transformers: false }
 ```
 
 ## Mock vs Real API

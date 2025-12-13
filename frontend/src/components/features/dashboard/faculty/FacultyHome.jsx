@@ -1,6 +1,7 @@
 import React from 'react';
 import { BookOpen, Users, BarChart3, Award, Clock, Calendar, Upload, FileText, MessageSquare } from 'lucide-react';
 import { useThemeGlobal } from "@/components/common/theme/ThemeProvider";
+import { useNavigate } from 'react-router-dom';
 import StatsCard from '@/components/common/ui/cards/StatsCard';
 import Card from '@/components/common/ui/cards/Card';
 
@@ -8,6 +9,7 @@ export default function FacultyHome() {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
 
+  const navigate = useNavigate();
   const stats = [
     { title: "Active Classes", value: "4", subtitle: "120 total students", icon: BookOpen, color: "blue" },
     { title: "Assignments to Grade", value: "8", subtitle: "From 3 classes", icon: Clock, color: "orange" },
@@ -87,6 +89,7 @@ export default function FacultyHome() {
           {quickActions.map((action, index) => (
             <button
               key={action.label}
+              onClick={() => { if (action.label === 'Upload Material') navigate('/dashboard/materials'); }}
               className={`touch-button p-3 sm:p-4 rounded-xl bg-gradient-to-br ${colorClasses[action.color]} text-white transition-all duration-200 hover:scale-105 group text-left`}
             >
               <action.icon className="w-5 h-5 sm:w-6 sm:h-6 mb-2 group-hover:scale-110 transition-transform" />

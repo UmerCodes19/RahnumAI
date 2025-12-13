@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 import { Calendar, Clock, Users, BookOpen, TrendingUp, Download } from 'lucide-react';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 import Card from '@/components/common/ui/cards/Card';
@@ -10,42 +12,33 @@ export default function StudentAttendance() {
   
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('all');
+  const [coursesData, setCoursesData] = useState([]);
   
-  const courses = [
-    {
-      id: 'MATH101',
-      name: 'Calculus I',
-      code: 'MATH101',
-      faculty: 'Dr. Sarah Johnson',
-      credits: 3,
-      schedule: 'Mon, Wed, Fri 10:00 AM',
-      totalHours: 45,
-      attendedHours: 38,
-      attendancePercentage: 84.4
-    },
-    {
-      id: 'CS101',
-      name: 'Introduction to Programming',
-      code: 'CS101',
-      faculty: 'Prof. Michael Chen',
-      credits: 4,
-      schedule: 'Tue, Thu 2:00 PM',
-      totalHours: 60,
-      attendedHours: 52,
-      attendancePercentage: 86.7
-    },
-    {
-      id: 'PHY101',
-      name: 'Physics Fundamentals',
-      code: 'PHY101',
-      faculty: 'Dr. Emily Davis',
-      credits: 3,
-      schedule: 'Mon, Wed 3:00 PM',
-      totalHours: 50,
-      attendedHours: 40,
-      attendancePercentage: 80.0
-    }
-  ];
+  const courses = coursesData.length ? coursesData : [];
+
+  useEffect(() => {
+    const loadEnrollments = async () => {
+      try {
+        const cs = await api.courses.getCourses({ enrolled: 'true' });
+        const courseList = Array.isArray(cs) ? cs : (cs.courses || []);
+        const enriched = [];
+        for (const c of courseList) {
+          try {
+            const att = await api.courses.getAttendance(c.id);
+            const percent = att && att.overall && att.overall.percent ? Math.round(att.overall.percent) : 0;
+            enriched.push({ ...c, attendancePercentage: percent, attendedHours: 0, totalHours: 0 });
+          } catch (e) {
+            enriched.push({ ...c, attendancePercentage: 0, attendedHours: 0, totalHours: 0 });
+          }
+        }
+        setCoursesData(enriched);
+      } catch (e) {
+        console.error('Failed to load enrolled courses and attendance', e);
+        toast.error('Failed to load enrolled courses');
+      }
+    };
+    loadEnrollments();
+  }, []);
 
   const attendanceStats = [
     {

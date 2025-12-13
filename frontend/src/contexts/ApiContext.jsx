@@ -23,6 +23,7 @@ export const ApiProvider = ({ children }) => {
 
       if (error.message?.includes('401') || error.message?.includes('token')) {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('authToken1');
         localStorage.removeItem('userRole');
         localStorage.removeItem('userData');
         toast.error('Session expired. Please login again.');

@@ -24,6 +24,7 @@ import FacultyStudents from "@/components/features/dashboard/faculty/FacultyStud
 import FacultyAttendance from "@/components/features/dashboard/faculty/FacultyAttendance";
 import FacultyAnalytics from "@/components/features/dashboard/faculty/FacultyAnalytics";
 import ClassPerformance from '@/components/features/dashboard/faculty/FacultyClassPerformance';
+import FacultyMaterials from '@/components/features/dashboard/faculty/FacultyMaterials';
 
 // Admin Components
 import AdminHome from '@/components/features/dashboard/admin/AdminHome';
@@ -52,7 +53,7 @@ const AdminRoute = ({ children }) => {
 function ResetButton({ onReset }) {
   React.useEffect(() => {
     const handleKeyPress = (e) => {
-      if (e.key.toLowerCase() === "r") {
+      if (e.key.toLowerCase() === "*") {
         onReset();
       }
     };
@@ -75,13 +76,13 @@ function ResetButton({ onReset }) {
 
 function AppContent() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
-  const [isFirstTime, setIsFirstTime] = React.useState(true);
+  const [isFirstTime, setIsFirstTime] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [userRole, setUserRole] = React.useState('');
 
   React.useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisitedBefore");
-    const authToken = localStorage.getItem("authToken");
+    const authToken = localStorage.getItem("authToken") || localStorage.getItem('authToken1');
     const storedUserRole = localStorage.getItem("userRole");
     
     if (hasVisited) {
@@ -95,7 +96,7 @@ function AppContent() {
   }, []);
 
   const handleLoginSuccess = (userData) => {
-    localStorage.setItem("authToken", userData.token || "demo-token");
+
     localStorage.setItem("userRole", userData.role);
     localStorage.setItem("userData", JSON.stringify(userData));
     localStorage.setItem("hasVisitedBefore", "true");
@@ -115,6 +116,7 @@ function AppContent() {
   const resetExperience = () => {
     localStorage.removeItem("hasVisitedBefore");
     localStorage.removeItem("authToken");
+    localStorage.removeItem("authToken1");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userData");
     setIsAuthenticated(false);
@@ -196,6 +198,7 @@ function AppContent() {
               {/* Faculty Routes */}
               <Route path="students" element={<FacultyStudents />} />
               <Route path="attendance" element={<FacultyAttendance />} />
+              <Route path="materials" element={<FacultyMaterials />} />
               <Route path="analytics" element={<FacultyAnalytics />} />
               <Route path="class-performance" element={<ClassPerformance />} />
 

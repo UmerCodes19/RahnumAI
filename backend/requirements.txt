@@ -1,0 +1,12 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+google-generativeai
+Pillow
+dj-database-url
+gunicorn
+scikit-learn
+joblib
+transformers
+torch
+sentencepiece

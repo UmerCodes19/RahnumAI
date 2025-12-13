@@ -11,28 +11,53 @@ const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
+  const [selectedCourseIds, setSelectedCourseIds] = useState(new Set());
+  const [availableCourses, setAvailableCourses] = useState([]);
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
 
   // Fetch courses from API on mount
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchEnrolledCourses = async () => {
       try {
         setLoading(true);
-        const response = await api.courses.getCourses();
-        // Handle both array and object responses
+        // Only fetch courses the current student is enrolled in
+        const response = await api.courses.getCourses({ enrolled: 'true' });
         const courseList = Array.isArray(response) ? response : (response.courses || []);
         setCourses(courseList);
       } catch (error) {
-        console.error('Error fetching courses:', error);
+        console.error('Error fetching enrolled courses:', error);
         toast.error('Failed to load courses');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
+    fetchEnrolledCourses();
   }, []);
+
+  // Open the register modal and compute available (non-enrolled) courses
+  const openRegisterModal = async () => {
+    setSelectedCourseIds(new Set());
+    try {
+      // Fetch all courses (not just enrolled) to display in the register modal
+      const allResponse = await api.courses.getCourses();
+      const allList = Array.isArray(allResponse) ? allResponse : (allResponse.courses || []);
+      // Compute available courses by excluding those that are currently enrolled for this user
+      // If backend provides `is_enrolled` flag, rely on that; otherwise, compare ids with the enrolled list
+      const enrolledIds = new Set(courses.map(c => c.id));
+      const available = allList.filter(c => {
+        if (typeof c.is_enrolled === 'boolean') return !c.is_enrolled;
+        return !enrolledIds.has(c.id);
+      });
+      setAvailableCourses(available);
+    } catch (err) {
+      console.error('Failed to load courses for registration', err);
+      toast.error('Failed to load courses');
+      setAvailableCourses([]);
+    }
+    setShowRegister(true);
+  }
 
   const stats = [
     { title: "Total Courses", value: courses.length.toString(), subtitle: "All enrolled courses", icon: BookOpen, color: "blue" },
@@ -51,7 +76,7 @@ const Courses = () => {
         </p>
       </div>
       <button
-        onClick={() => setShowRegister(true)}
+        onClick={openRegisterModal}
         className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2"
       >
         <Plus className="w-4 h-4" />
@@ -92,8 +117,11 @@ const Courses = () => {
               </h3>
               <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{course.code}</p>
               <p className={`text-sm mt-1 ${darkMode ? 'text-slate-500' : 'text-slate-500'}`}>
-                Instructor: {course.instructor}
+                Instructor: {course.teacher && course.teacher.first_name ? `${course.teacher.first_name} ${course.teacher.last_name || ''}` : (course.instructor || 'TBA')}
               </p>
+              {course.is_enrolled && course.description && (
+                <p className={`text-sm mt-2 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{course.description}</p>
+              )}
             </div>
             <span className={`px-3 py-1 text-sm rounded-full ${
               darkMode 
@@ -133,7 +161,7 @@ const Courses = () => {
                 ? 'bg-orange-900/20 text-orange-400 border-orange-800 hover:bg-orange-900/30'
                 : 'bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200'
             }`}>
-              Materials
+              Materials {course.materials_count ? `(${course.materials_count})` : ''}
             </button>
           </div>
         </div>
@@ -154,18 +182,59 @@ const Courses = () => {
           <div className="space-y-4">
             <p className={darkMode ? 'text-slate-400' : 'text-slate-600'}>Select courses to register for the upcoming semester:</p>
             <div className="space-y-2">
-              {['Advanced Mathematics', 'Data Structures', 'Digital Electronics', 'Business Communication'].map((course, index) => (
-                <label key={index} className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+              {/* show available courses (non-enrolled) for registration */}
+              {availableCourses.map((course) => {
+                const isEnrolled = course.is_enrolled || false;
+                const checked = selectedCourseIds.has(course.id);
+                return (
+                <label key={course.id} className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
                   darkMode
                     ? 'border-slate-700 hover:bg-slate-700'
                     : 'border-slate-200 hover:bg-slate-50'
                 }`}>
-                  <input type="checkbox" className="rounded text-orange-500 focus:ring-orange-500" />
-                  <span className={darkMode ? 'text-white' : 'text-slate-900'}>{course}</span>
+                  <input
+                    type="checkbox"
+                    className="rounded text-orange-500 focus:ring-orange-500 mt-1"
+                    checked={checked}
+                    disabled={isEnrolled}
+                    onChange={() => {
+                      const next = new Set(selectedCourseIds);
+                      if (next.has(course.id)) next.delete(course.id);
+                      else next.add(course.id);
+                      setSelectedCourseIds(next);
+                    }}
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className={darkMode ? 'text-white font-semibold' : 'text-slate-900 font-semibold'}>{course.name || course.title}</span>
+                      {isEnrolled && <span className="text-xs text-green-600">Enrolled</span>}
+                    </div>
+                    <p className={`text-sm mt-1 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{course.description}</p>
+                  </div>
                 </label>
-              ))}
+              )})}
             </div>
-            <button className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300">
+            <button
+              className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white py-3 rounded-lg font-medium hover:from-orange-600 hover:to-amber-600 transition-all duration-300 disabled:opacity-60"
+              disabled={selectedCourseIds.size === 0}
+                onClick={async () => {
+                try {
+                  const ids = Array.from(selectedCourseIds);
+                  const res = await api.courses.enroll(ids);
+                  toast.success('Registered for selected courses');
+                  // Re-fetch enrolled courses only for the dashboard
+                  const response = await api.courses.getCourses({ enrolled: 'true' });
+                  const courseList = Array.isArray(response) ? response : (response.courses || []);
+                  setCourses(courseList);
+                  // Update the available courses to remove any newly enrolled ones
+                  setAvailableCourses(prev => prev.filter(c => !ids.includes(c.id)));
+                  setShowRegister(false);
+                } catch (error) {
+                  console.error('Failed to register courses', error);
+                  toast.error('Failed to register courses');
+                }
+              }}
+            >
               Register Selected Courses
             </button>
           </div>

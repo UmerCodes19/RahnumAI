@@ -3,6 +3,7 @@ class MockApiService {
   constructor() {
     this.delay = 1000; // Simulate network delay
     this.users = this.loadUsers();
+    this.enrollments = this.loadEnrollments();
   }
 
   loadUsers() {
@@ -53,6 +54,17 @@ class MockApiService {
 
   saveUsers() {
     localStorage.setItem('mockUsers', JSON.stringify(this.users));
+  }
+
+  loadEnrollments() {
+    const stored = localStorage.getItem('mockEnrollments');
+    if (stored) return JSON.parse(stored);
+    // default: store enrollments by user id
+    return {};
+  }
+
+  saveEnrollments() {
+    localStorage.setItem('mockEnrollments', JSON.stringify(this.enrollments));
   }
 
   // Simulate API delay
@@ -169,6 +181,7 @@ class MockApiService {
         name: 'Mathematics 101',
         code: 'MATH101',
         instructor: 'Dr. Smith',
+        teacher_id: 1,
         progress: 75,
         enrolled: 45,
         duration: '15 weeks',
@@ -179,6 +192,7 @@ class MockApiService {
         name: 'Computer Science',
         code: 'CS101',
         instructor: 'Prof. Johnson',
+        teacher_id: 2,
         progress: 60,
         enrolled: 32,
         duration: '16 weeks',
@@ -189,6 +203,7 @@ class MockApiService {
         name: 'Physics Fundamentals',
         code: 'PHY101',
         instructor: 'Dr. Wilson',
+        teacher_id: 1,
         progress: 45,
         enrolled: 28,
         duration: '14 weeks',
@@ -196,7 +211,59 @@ class MockApiService {
       }
     ];
 
-    return { courses };
+    // Support taught filter (for faculty). Mark which courses the current user is enrolled in
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const userId = userData && userData.id;
+      const userEnrolls = (this.enrollments[userId] || []);
+      let mapped = courses.map(c => ({
+        ...c,
+        is_enrolled: userEnrolls.includes(c.id),
+      }));
+      // If taught filter is provided, try to return only the teacher's courses
+      if (filters && (filters.taught === 'true' || filters.taught === true)) {
+        mapped = mapped.filter(c => c.teacher_id && c.teacher_id === userId);
+      }
+      return { courses: mapped };
+    } catch (e) {
+      return { courses };
+    }
+  }
+
+  async getMaterials(courseId) {
+    await this.simulateDelay();
+    // Return mock materials per course
+    const materials = [
+      { id: 1, title: 'Lecture 1 Slides', description: 'Intro slides', file: '/public/img/sample.pdf' },
+      { id: 2, title: 'Lecture 2 Slides', description: 'Advanced topics', file: '/public/img/sample.pdf' }
+    ];
+    return materials;
+  }
+
+  async enroll(courseIds = []) {
+    await this.simulateDelay();
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData && userData.id;
+    if (!userId) throw new Error('Not authenticated');
+    if (!this.enrollments[userId]) this.enrollments[userId] = [];
+    courseIds.forEach(id => {
+      if (!this.enrollments[userId].includes(id)) {
+        this.enrollments[userId].push(id);
+      }
+    });
+    this.saveEnrollments();
+    return { enrolled: this.enrollments[userId] };
+  }
+
+  async enrollCourse(courseId) {
+    await this.simulateDelay();
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const userId = userData && userData.id;
+    if (!userId) throw new Error('Not authenticated');
+    if (!this.enrollments[userId]) this.enrollments[userId] = [];
+    if (!this.enrollments[userId].includes(courseId)) this.enrollments[userId].push(courseId);
+    this.saveEnrollments();
+    return { enrolled: this.enrollments[userId] };
   }
 
   // Mock assignments data
@@ -230,6 +297,26 @@ class MockApiService {
     ];
 
     return assignments;
+  }
+
+  async getStudents(courseId) {
+    await this.simulateDelay();
+    return [
+      { id: 1, username: 'john_student', email: 'john@student.edu' },
+      { id: 2, username: 'sarah_student', email: 'sarah@student.edu' }
+    ];
+  }
+
+  async getAttendance(courseId, params = {}) {
+    await this.simulateDelay();
+    const sessions = [
+      { id: 1, session_date: '2025-06-01', created_by: { id: 2, username: 'professor' }, records: [ { student: { id: 1, username: 'john_student'}, status: 'present' }, { student: { id: 2, username: 'sarah_student'}, status: 'absent' } ] },
+      { id: 2, session_date: '2025-06-02', created_by: { id: 2, username: 'professor' }, records: [ { student: { id: 1, username: 'john_student'}, status: 'present' }, { student: { id: 2, username: 'sarah_student'}, status: 'present' } ] }
+    ];
+    const recordsFlat = sessions.flatMap(s => s.records);
+    const presentCount = recordsFlat.filter(r => r.status === 'present').length;
+    const overall = { present: presentCount, records: recordsFlat.length, percent: Math.round((presentCount / Math.max(1, recordsFlat.length)) * 100) };
+    return { sessions, overall };
   }
 
   // Mock AI endpoints

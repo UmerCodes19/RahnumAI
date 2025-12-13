@@ -81,6 +81,48 @@ const assignments = await api.courses.getAssignments(courseId);
 // Response: [{ id, title, course, dueDate, status, ... }]
 ```
 
+### Course Materials
+```javascript
+// Get materials for a course (students enrolled or course teacher)
+const materials = await api.courses.getMaterials(courseId);
+
+// Teacher upload material (multipart/form-data)
+const fd = new FormData();
+fd.append('file', fileInput.files[0]);
+fd.append('title', 'Lecture 1');
+fd.append('description', 'Overview of basics');
+const uploadRes = await api.courses.uploadMaterial(courseId, fd);
+```
+
+### Course Students
+```javascript
+// Get a list of students enrolled in a course (teacher/admin)
+const students = await api.courses.getStudents(courseId);
+```
+
+### Course Attendance
+```javascript
+// Get attendance summary for a course or a specific session
+// returns { sessions: [...], overall: { present, records, percent } }
+const attendance = await api.courses.getAttendance(courseId);
+
+// Create a new attendance session (teacher only)
+const payload = {
+  session_date: '2025-06-01',
+  records: [
+    { student_id: 1, status: 'present' },
+    { student_id: 2, status: 'absent' }
+  ]
+};
+const res = await api.courses.recordAttendance(courseId, payload);
+```
+
+### Enroll in Courses
+```javascript
+const response = await api.courses.enroll([1, 2, 3]);
+const responseSingle = await api.courses.enrollCourse(courseId);
+```
+
 ---
 
 ## Assignments
@@ -163,7 +205,14 @@ const response = await api.ai.generateLearningPath({
 
 ### Predict Grades
 ```javascript
-const response = await api.ai.predictGrades();
+// Pass a feature payload for more accurate predictions
+const response = await api.ai.predictGrades({
+  attendance: 0.85,
+  avg_score: 78,
+  assignments_completed: 0.9,
+  participation: 0.6,
+  homework_completion: 0.8
+});
 
 // Response: {
 //   id, user_id,
@@ -179,7 +228,8 @@ const response = await api.ai.predictGrades();
 
 ### Analyze Well-Being
 ```javascript
-const response = await api.ai.analyzeWellBeing();
+// Send user text (feelings/sentiment) for analysis
+const response = await api.ai.analyzeWellBeing('I am feeling stressed with upcoming exams');
 
 // Response: {
 //   id, user_id,

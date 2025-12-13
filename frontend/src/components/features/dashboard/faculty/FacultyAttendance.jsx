@@ -1,57 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Users, CheckCircle, XCircle, Clock, Download, Upload } from 'lucide-react';
 import Card from '@/components/common/ui/cards/Card';
+import api from '@/services/api';
+import { toast } from 'react-toastify';
 import { useThemeGlobal } from '@/components/common/theme/ThemeProvider';
 
 const FacultyAttendance = () => {
   const { theme } = useThemeGlobal();
   const darkMode = theme === 'dark';
 
-  const [attendance, setAttendance] = useState([
-    { 
-      id: 1, 
-      date: '2024-12-15', 
-      class: 'MATH101', 
-      present: 28, 
-      absent: 4, 
-      total: 32,
-      status: 'completed'
-    },
-    { 
-      id: 2, 
-      date: '2024-12-14', 
-      class: 'CS101', 
-      present: 25, 
-      absent: 3, 
-      total: 28,
-      status: 'completed'
-    },
-    { 
-      id: 3, 
-      date: '2024-12-13', 
-      class: 'PHY101', 
-      present: 30, 
-      absent: 5, 
-      total: 35,
-      status: 'completed'
-    },
-    { 
-      id: 4, 
-      date: '2024-12-16', 
-      class: 'MATH101', 
-      present: 0, 
-      absent: 0, 
-      total: 32,
-      status: 'upcoming'
-    }
-  ]);
+  const [attendance, setAttendance] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
 
-  const [students, setStudents] = useState([
-    { id: 1, name: 'John Smith', status: 'present', lastAttendance: '2024-12-15' },
-    { id: 2, name: 'Sarah Johnson', status: 'absent', lastAttendance: '2024-12-14' },
-    { id: 3, name: 'Michael Brown', status: 'present', lastAttendance: '2024-12-15' },
-    { id: 4, name: 'Emily Davis', status: 'present', lastAttendance: '2024-12-15' }
-  ]);
+  const [students, setStudents] = useState([]);
 
   const stats = [
     { title: "Overall Attendance", value: "92%", subtitle: "This semester", icon: Users, color: "green" },
@@ -67,6 +29,45 @@ const FacultyAttendance = () => {
         : student
     ));
   };
+
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const cs = await api.courses.getCourses({ taught: 'true' });
+        console.debug('GET /courses?taught=true response', cs);
+        const courseList = Array.isArray(cs) ? cs : (cs.courses || []);
+        setCourses(courseList);
+        if (courseList.length > 0) setSelectedCourseId(Number(courseList[0].id));
+        else console.debug('No courses found for teacher', localStorage.getItem('userData') || 'no-user');
+      } catch (e) {
+        console.error('Failed to load teacher courses', e);
+        toast.error('Failed to load teacher courses');
+      }
+    };
+    loadCourses();
+  }, []);
+
+  useEffect(() => {
+    const loadForCourse = async () => {
+      if (!selectedCourseId) return;
+      try {
+        const studentsData = await api.courses.getStudents(selectedCourseId);
+        setStudents(Array.isArray(studentsData) ? studentsData.map(s => ({ id: s.id, name: s.username, status: 'absent', lastAttendance: '' })) : []);
+        const att = await api.courses.getAttendance(selectedCourseId);
+        // att format currently is { sessions: [...], overall: {...} }
+        const sessions = (att.sessions || []).map(s => {
+          const present = (s.records || []).filter(r => r.status === 'present').length;
+          const absent = (s.records || []).filter(r => r.status === 'absent').length;
+          const total = (s.records || []).length;
+          return { ...s, present, absent, total };
+        });
+        setAttendance(sessions);
+      } catch (err) {
+        console.error('Failed to load attendance for course', err);
+      }
+    };
+    loadForCourse();
+  }, [selectedCourseId]);
 
   return (
     <div className={`min-h-screen space-y-4 sm:space-y-6 p-4 sm:p-6 ${darkMode ? '' : ''}`}>
@@ -120,13 +121,12 @@ const FacultyAttendance = () => {
             <h2 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
               Today's Attendance
             </h2>
-            <span className={`px-2 py-1 text-xs rounded-full text-center ${
-              darkMode 
-                ? 'bg-orange-900/20 text-orange-400' 
-                : 'bg-orange-100 text-orange-600'
-            }`}>
-              MATH101 - 10:00 AM
-            </span>
+            <div className="flex items-center space-x-3">
+                  <select value={selectedCourseId || ''} onChange={(e) => setSelectedCourseId(Number(e.target.value))} className="px-3 py-2 border rounded-lg">
+                    {courses.length === 0 && <option value="">No classes found</option>}
+                    {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+            </div>
           </div>
           
           <div className="space-y-3">
@@ -170,8 +170,22 @@ const FacultyAttendance = () => {
             ))}
           </div>
           
-          <div className={`mt-4 pt-4 border-t ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
-            <button className="touch-button w-full bg-gradient-to-r from-purple-600 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-indigo-600 transition-all duration-300">
+            <div className={`mt-4 pt-4 border-t ${darkMode ? 'border-slate-700' : 'border-slate-200'}`}>
+            <button
+              onClick={async () => {
+                try {
+                  const records = students.map(s => ({ student_id: s.id, status: s.status || 'absent' }));
+                  const payload = { session_date: new Date().toISOString().split('T')[0], records };
+                  await api.courses.recordAttendance(selectedCourseId, payload);
+                  toast.success('Attendance saved');
+                  const att = await api.courses.getAttendance(selectedCourseId);
+                  setAttendance(att.sessions || []);
+                } catch (e) {
+                  console.error('Failed to save attendance', e);
+                  toast.error('Failed to save attendance');
+                }
+              }}
+              className="touch-button w-full bg-gradient-to-r from-purple-600 to-indigo-500 text-white py-3 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-indigo-600 transition-all duration-300">
               Save Attendance
             </button>
           </div>

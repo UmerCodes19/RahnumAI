@@ -169,6 +169,11 @@ api.users.getProfile()                // Get current user profile
 ```javascript
 api.courses.getCourses(filters)       // Get all courses
 api.courses.getAssignments(courseId)  // Get assignments for a course
+api.courses.getMaterials(courseId)    // Get materials for a course (students enrolled or course teacher)
+api.courses.uploadMaterial(courseId, formData) // Upload material (teacher only)
+api.courses.getStudents(courseId)     // Get students enrolled in a course (teacher/admin)
+api.courses.getAttendance(courseId)   // Get attendance sessions + overall stats for a course
+api.courses.recordAttendance(courseId, payload) // Create attendance session with records (teacher only)
 ```
 
 #### Assignments
@@ -352,6 +357,13 @@ export function MyComponent() {
 | Assignments | dashboard/student/Assignments.jsx | getAssignments, submitAssignment | ✅ Complete |
 | AIAssistant | dashboard/common/AIAssistant.jsx | chatWithAI | ✅ Complete |
 | GradePredictor | ai/GradePredictor.jsx | predictGrades, analyzeWellBeing | ✅ Complete |
+## Token Refresh Integration
+
+- The frontend `ApiClient` will proactively refresh expiring access tokens using the `/api/token/refresh/` backend endpoint.
+- It schedules a refresh 60 seconds before token expiry and tries refreshing on 401 responses as a fallback.
+- Tokens are stored in `localStorage` as `authToken` (access) and `refreshToken`.
+- Call `api.auth.logout()` to clear tokens and cancel the scheduled refresh.
+
 | PaperGenerator | ai/PaperGenerator.jsx | generateExamPaper | ✅ Complete |
 | PersonalizedLearning | ai/PersonalizedLearning.jsx | generateLearningPath | ✅ Complete |
 

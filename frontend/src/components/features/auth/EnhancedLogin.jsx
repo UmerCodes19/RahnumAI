@@ -286,7 +286,7 @@ export default function EnhancedLogin({ onLoginSuccess }) {
         const res = await api.auth.login(loginData);
         if (res) {
           const userData = res.user || { role, name: identifier };
-          localStorage.setItem('authToken', res.access || res.token);
+          localStorage.setItem('authToken1', res.access || res.token);
           localStorage.setItem('userRole', userData.role || role);
           localStorage.setItem('userData', JSON.stringify(userData));
           toast.success(`Welcome back, ${userData.name || userData.role}!`);

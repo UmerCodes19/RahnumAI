@@ -103,6 +103,7 @@ export default function Dashboard({ onLogout }) {
     localStorage.setItem('userRole', newRole);
     localStorage.setItem('userData', JSON.stringify(userData));
     localStorage.setItem('authToken', `mock-token-${newRole}-${Date.now()}`);
+    localStorage.setItem('authToken1', `mock-token-${newRole}-${Date.now()}`);
     setShowRoleSwitcher(false);
     window.location.reload();
   };
